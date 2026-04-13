@@ -15,7 +15,7 @@ export function ExportButtons({ jobId }: { jobId: string | null }) {
   );
 
   return (
-    <div className="rounded-lg border border-slate-200/90 bg-white p-5 shadow-card">
+    <div className="rounded-lg border border-slate-200/90 bg-white p-5 shadow-card mt-8">
       <p className="text-[12px] font-semibold text-navy">Export</p>
       <p className="mt-1 text-xs leading-relaxed text-brand-slate">
         Download structured evidence packages for your quality record (JSON, CSV, or PDF summary).
