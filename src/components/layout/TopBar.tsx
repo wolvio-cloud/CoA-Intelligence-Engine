@@ -20,8 +20,8 @@ const pageMeta: Record<Page, { title: string; description: string }> = {
     description: "Browse and review past submissions",
   },
   customize: {
-    title: "Customize",
-    description: "Manage documents, spec limits and configuration",
+    title: "Baseline Data",
+    description: "Manage and update baseline data for accurate analysis",
   },
 };
 
