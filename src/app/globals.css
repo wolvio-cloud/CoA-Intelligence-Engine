@@ -7,30 +7,47 @@
   --color-navy: #1a2332;
   --color-blue: #2563eb;
   --color-slate: #475569;
-  --color-light-gray: #f1f5f9;
-  /* Page background token — Light Gray #F1F5F9 */
-  --color-canvas: #f1f5f9;
-  --radius-card: 10px;
+  --color-canvas: #f0f2f5;
 }
 
 html {
   scroll-behavior: smooth;
-  font-size: 65%;
 }
 
 body {
-  @apply min-h-screen antialiased text-brand-slate text-sm;
   font-family: var(--font-sans);
   line-height: 1.5;
   background-color: var(--color-canvas);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #374151;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
-  }
-
-  .surface-card {
-    @apply rounded-lg border border-slate-200/90 bg-white shadow-card;
   }
 }
