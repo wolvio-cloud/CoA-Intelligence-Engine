@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { brand } from "@/config/brand";
 
 export type Page = "dashboard" | "new-coa" | "recent-coa" | "customize";
@@ -8,6 +9,8 @@ export type Page = "dashboard" | "new-coa" | "recent-coa" | "customize";
 interface SidebarProps {
   activePage: Page;
   onNavigate: (page: Page) => void;
+  onLogout: () => Promise<void>;
+  user: User;
 }
 
 const navGroups: {
@@ -75,8 +78,23 @@ const navGroups: {
   },
 ];
 
-export function Sidebar({ activePage, onNavigate }: SidebarProps) {
+function getInitials(email: string): string {
+  const parts = email.split("@")[0].split(/[._-]/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return email.slice(0, 2).toUpperCase();
+}
+
+export function Sidebar({ activePage, onNavigate, onLogout, user }: SidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    await onLogout();
+    setLoggingOut(false);
+  };
+
+  const initials = getInitials(user.email ?? "QA");
 
   return (
     <>
@@ -155,16 +173,38 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
           ))}
         </div>
 
-        <div className="shrink-0 border-t border-slate-100 p-3">
-          <div className="flex items-center gap-2.5 rounded-xl p-2">
+        <div className="shrink-0 border-t border-slate-100 p-3 space-y-1">
+          <div className="flex items-center gap-2.5 rounded-xl px-2 py-2">
             <div className="h-7 w-7 shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-[11px] font-semibold">
-              QA
+              {initials}
             </div>
-            <div className="min-w-0">
-              <p className="truncate text-xs font-semibold text-slate-900 leading-tight">Quality Analyst</p>
-              <p className="text-[10px] text-slate-400 leading-tight">qa@supplier.com</p>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-semibold text-slate-900 leading-tight">
+                {user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "User"}
+              </p>
+              <p className="truncate text-[10px] text-slate-400 leading-tight">{user.email}</p>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all duration-150 disabled:opacity-50"
+          >
+            {loggingOut ? (
+              <svg className="h-4 w-4 animate-spin shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+              </svg>
+            ) : (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            )}
+            {loggingOut ? "Signing out…" : "Sign out"}
+          </button>
         </div>
       </aside>
     </>
