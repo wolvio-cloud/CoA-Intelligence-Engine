@@ -21,15 +21,17 @@ export default function HomePage() {
   const [phase, setPhase] = useState<Phase>("upload");
   const [sidebarJobId, setSidebarJobId] = useState<string | null>(null);
   const [selectedParam, setSelectedParam] = useState<CoaParameter | null>(null);
-  const [sidebarMode, setSidebarMode] = useState<"new" | "recent">("new");
+  type SidebarMode = "dashboard" | "new" | "recent" | "customise";
+
+  const [sidebarMode, setSidebarMode] = useState<SidebarMode>("dashboard");
 
   const router = useRouter();
   const searchParams = useSearchParams();
   const coaUpload = useCoaUpload();
-  const pipelineActive = phase === "processing";
-  const status = useCoaStatus(pipelineActive);
-
   const activeJobId = coaUpload.jobId ?? sidebarJobId;
+  const pipelineActive = phase === "processing" && Boolean(activeJobId);
+  const status = useCoaStatus(activeJobId, pipelineActive);
+
   const loadResults = phase === "results";
   const { data, loading } = useCoaResult(activeJobId, loadResults);
 
@@ -60,7 +62,7 @@ export default function HomePage() {
     });
   }, [data]);
 
-  const setMenuView = (view: "new" | "recent") => {
+  const setMenuView = (view: "dashboard" | "new" | "recent" | "customise") => {
     const pathname = window.location.pathname;
     router.push(`${pathname}?view=${view}`);
   };
@@ -131,46 +133,85 @@ export default function HomePage() {
             </div>
 
             <div className="mt-6 flex flex-col gap-3">
+
+              {/* Dashboard */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSidebarMode("dashboard");
+                  setPhase("upload");
+                  setMenuView("dashboard");
+                }}
+                className={`flex w-full items-center gap-3 rounded-[20px] border px-4 py-3 text-sm font-semibold transition ${sidebarMode === "dashboard"
+                  ? "border-brand-blue bg-brand-blue text-white shadow-sm"
+                  : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-white"
+                  }`}
+              >
+                📊 Dashboard
+              </button>
+
+              {/* New CoA */}
               <button
                 type="button"
                 onClick={() => {
                   setSidebarMode("new");
                   setPhase("upload");
-                  setSidebarJobId(null);
-                  setSelectedParam(null);
                   setMenuView("new");
                 }}
-                className={`flex w-full items-center gap-3 rounded-[20px] border px-4 py-3 text-sm font-semibold transition ${
-                  sidebarMode === "new"
-                    ? "border-brand-blue bg-brand-blue text-white shadow-sm"
-                    : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-white"
-                }`}
+                className={`flex w-full items-center gap-3 rounded-[20px] border px-4 py-3 text-sm font-semibold transition ${sidebarMode === "new"
+                  ? "border-brand-blue bg-brand-blue text-white shadow-sm"
+                  : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-white"
+                  }`}
               >
-                <svg viewBox="0 0 24 24" className="h-5 w-5 flex-none" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-                New CoA
+                ➕ New CoA
               </button>
+
+              {/* Recent CoA */}
               <button
                 type="button"
                 onClick={() => {
                   setSidebarMode("recent");
                   setPhase("recent");
-                  setSidebarJobId(null);
-                  setSelectedParam(null);
                   setMenuView("recent");
                 }}
-                className={`flex w-full items-center gap-3 rounded-[20px] border px-4 py-3 text-sm font-semibold transition ${
-                  sidebarMode === "recent"
-                    ? "border-brand-blue bg-brand-blue text-white shadow-sm"
-                    : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-white"
-                }`}
+                className={`flex w-full items-center gap-3 rounded-[20px] border px-4 py-3 text-sm font-semibold transition ${sidebarMode === "recent"
+                  ? "border-brand-blue bg-brand-blue text-white shadow-sm"
+                  : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-white"
+                  }`}
               >
-                <svg viewBox="0 0 24 24" className="h-5 w-5 flex-none" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 12h18M3 6h18M7 18h10" />
-                </svg>
-                Recent CoA
+                📋 Recent CoA
               </button>
+
+              {/* Customise */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSidebarMode("customise");
+                  setPhase("upload");
+                  setMenuView("customise");
+                }}
+                className={`flex w-full items-center gap-3 rounded-[20px] border px-4 py-3 text-sm font-semibold transition ${sidebarMode === "customise"
+                  ? "border-brand-blue bg-brand-blue text-white shadow-sm"
+                  : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-white"
+                  }`}
+              >
+                🎨 Customise
+              </button>
+
+              {/* Logout */}
+              <button
+                type="button"
+                onClick={() => {
+                  // clear session (adjust based on your auth)
+                  localStorage.clear();
+                  sessionStorage.clear();
+                  window.location.href = "/login";
+                }}
+                className="flex w-full items-center gap-3 rounded-[20px] border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-100"
+              >
+                🚪 Logout
+              </button>
+
             </div>
 
           </aside>

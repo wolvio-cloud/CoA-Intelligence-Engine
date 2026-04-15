@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useState } from "react";
-import { mockUploadCoa } from "@/lib/api";
+import { uploadCoa } from "@/lib/api";
 import type { PipelineStage } from "@/lib/types";
 
 export function useCoaUpload() {
@@ -16,9 +16,9 @@ export function useCoaUpload() {
     setError(null);
     setFileName(file.name);
     try {
-      const res = await mockUploadCoa(file.name);
+      const res = await uploadCoa(file);
       setJobId(res.id);
-      setInitialStage(res.stage);
+      setInitialStage("intake");
       return res.id;
     } catch {
       setError("Upload could not be queued. Retry with a PDF or image CoA.");

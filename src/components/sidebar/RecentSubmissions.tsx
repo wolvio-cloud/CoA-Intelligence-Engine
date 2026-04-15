@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { StatusBadge } from "@/components/results/StatusBadge";
-import { mockListSubmissions } from "@/lib/api";
+import { listSubmissions } from "@/lib/api";
 import type { SubmissionSummary } from "@/lib/types";
 
 export function RecentSubmissions({
@@ -20,7 +20,17 @@ export function RecentSubmissions({
   const [items, setItems] = useState<SubmissionSummary[]>([]);
 
   useEffect(() => {
-    mockListSubmissions().then(setItems);
+    let cancelled = false;
+    listSubmissions()
+      .then((submissions) => {
+        if (!cancelled) setItems(submissions);
+      })
+      .catch((error) => {
+        console.error("Unable to load recent submissions:", error);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (

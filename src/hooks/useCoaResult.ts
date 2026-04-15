@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
-import { mockFetchResult } from "@/lib/api";
+import { fetchResult } from "@/lib/api";
 import type { CoaJobResult } from "@/lib/types";
 
 export function useCoaResult(jobId: string | null, shouldLoad: boolean) {
@@ -9,21 +9,26 @@ export function useCoaResult(jobId: string | null, shouldLoad: boolean) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!shouldLoad) {
+    if (!shouldLoad || !jobId) {
       setData(null);
       return;
     }
-    const id = jobId ?? "session";
+    const requestId = jobId;
     let cancelled = false;
     setLoading(true);
     setData(null);
-    mockFetchResult(id)
+
+    fetchResult(requestId)
       .then((res) => {
         if (!cancelled) setData(res);
+      })
+      .catch((error) => {
+        console.error("Failed to load CoA result:", error);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
+
     return () => {
       cancelled = true;
     };

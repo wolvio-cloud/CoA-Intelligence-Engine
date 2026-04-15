@@ -1,15 +1,17 @@
 ﻿"use client";
 
 import { useCallback, useState } from "react";
-import { mockExportUrl } from "@/lib/api";
+import { exportUrl } from "@/lib/api";
 
 export function ExportButtons({ jobId }: { jobId: string | null }) {
   const [last, setLast] = useState<string | null>(null);
 
   const handle = useCallback(
-    (fmt: "json" | "csv" | "pdf") => {
+    (fmt: "json" | "csv") => {
       const id = jobId ?? "session";
-      setLast(mockExportUrl(id, fmt));
+      const url = exportUrl(id, fmt);
+      setLast(url);
+      window.open(url, "_blank");
     },
     [jobId],
   );
@@ -18,11 +20,11 @@ export function ExportButtons({ jobId }: { jobId: string | null }) {
     <div className="rounded-lg border border-slate-200/90 bg-white p-5 shadow-card mt-8">
       <p className="text-[12px] font-semibold text-navy">Export</p>
       <p className="mt-1 text-xs leading-relaxed text-brand-slate">
-        Download structured evidence packages for your quality record (JSON, CSV, or PDF summary).
+        Download structured evidence packages for your quality record (JSON or CSV).
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
-        {(["JSON", "CSV", "PDF"] as const).map((label) => {
-          const fmt = label.toLowerCase() as "json" | "csv" | "pdf";
+        {(["JSON", "CSV"] as const).map((label) => {
+          const fmt = label.toLowerCase() as "json" | "csv";
           return (
             <button
               key={label}
