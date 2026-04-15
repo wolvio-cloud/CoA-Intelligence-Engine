@@ -12,9 +12,9 @@ export default function HomePage() {
   const [activePage, setActivePage] = useState<Page>("dashboard");
 
   return (
-    <div className="flex min-h-screen bg-[#f0f2f5]">
+    <div className="flex h-full bg-[#f0f2f5]">
       <Sidebar activePage={activePage} onNavigate={setActivePage} />
-      <div className="flex flex-1 flex-col min-w-0">
+      <div className="flex flex-1 flex-col min-w-0 h-full">
         <TopBar activePage={activePage} />
         <main className="flex-1 overflow-y-auto p-5 lg:p-7">
           {activePage === "dashboard" && <DashboardPage />}

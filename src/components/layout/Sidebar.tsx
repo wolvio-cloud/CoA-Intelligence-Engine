@@ -104,7 +104,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-60 flex-col bg-white border-r border-slate-200/80 transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-auto ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-60 flex-col bg-white border-r border-slate-200/80 transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-auto lg:h-full lg:shrink-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
