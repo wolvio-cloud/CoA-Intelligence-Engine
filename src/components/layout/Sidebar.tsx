@@ -1,16 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import type { User } from "@supabase/supabase-js";
 import { brand } from "@/config/brand";
 
 export type Page = "dashboard" | "new-coa" | "recent-coa" | "customize";
+
+interface MockUser {
+  email: string;
+  displayName: string;
+}
 
 interface SidebarProps {
   activePage: Page;
   onNavigate: (page: Page) => void;
   onLogout: () => Promise<void>;
-  user: User;
+  user: MockUser;
 }
 
 const navGroups: {
@@ -180,7 +184,7 @@ export function Sidebar({ activePage, onNavigate, onLogout, user }: SidebarProps
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-semibold text-slate-900 leading-tight">
-                {user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "User"}
+                {user.displayName}
               </p>
               <p className="truncate text-[10px] text-slate-400 leading-tight">{user.email}</p>
             </div>

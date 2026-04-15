@@ -77,7 +77,7 @@ export function DashboardPage() {
     return () => { cancelled = true; };
   }, []);
 
-  const displayName = user?.user_metadata?.full_name ?? user?.email?.split("@")[0] ?? "there";
+  const displayName = user?.displayName ?? user?.email?.split("@")[0] ?? "there";
   const greeting = getGreeting();
 
   if (loading) return <LoadingDashboard />;

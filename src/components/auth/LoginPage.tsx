@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { brand } from "@/config/brand";
 
 export function LoginPage() {
+  const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -13,14 +14,15 @@ export function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) {
-      setError(error.message);
+    if (!email.trim() || !password.trim()) {
+      setError("Please enter your email and password.");
+      return;
     }
 
+    setLoading(true);
+    await new Promise((r) => setTimeout(r, 800));
+    await signIn(email, password);
     setLoading(false);
   };
 
@@ -51,7 +53,7 @@ export function LoginPage() {
               </label>
               <input
                 id="email"
-                type="email"
+                type="text"
                 autoComplete="email"
                 required
                 value={email}
