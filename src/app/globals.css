@@ -47,7 +47,78 @@ body {
   background: #94a3b8;
 }
 
+@keyframes coa-upload-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+@keyframes coa-line-sheen {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+@keyframes coa-stage-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes coa-ring-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.22);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(37, 99, 235, 0);
+  }
+}
+
+@keyframes coa-orbit-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(0.82);
+  }
+}
+
 @layer utilities {
+  .animate-coa-upload-bar {
+    animation: coa-upload-slide 1.35s ease-in-out infinite;
+  }
+
+  .animate-coa-line-sheen {
+    animation: coa-line-sheen 1.85s ease-in-out infinite;
+  }
+
+  .animate-coa-stage-enter {
+    animation: coa-stage-enter 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .animate-coa-ring-pulse {
+    animation: coa-ring-pulse 2s ease-in-out infinite;
+  }
+
+  .animate-coa-orbit-dot {
+    animation: coa-orbit-dot 1.4s ease-in-out infinite;
+  }
+
   .text-balance {
     text-wrap: balance;
   }

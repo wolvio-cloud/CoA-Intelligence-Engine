@@ -17,10 +17,12 @@ function ConfidenceBar({ value }: { value: number }) {
 export function ParameterRow({
   param,
   selected,
+  zebra,
   onSelect,
 }: {
   param: CoaParameter;
   selected: boolean;
+  zebra?: boolean;
   onSelect: (p: CoaParameter) => void;
 }) {
   const specBracket = [
@@ -42,8 +44,12 @@ export function ParameterRow({
       }}
       tabIndex={0}
       role="button"
-      className={`cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/25 ${
-        selected ? "bg-slate-50" : "hover:bg-slate-50/70"
+      className={`cursor-pointer transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-400/30 ${
+        selected
+          ? "bg-sky-50/90 ring-1 ring-inset ring-blue-200/60"
+          : zebra
+            ? "bg-slate-50/40 hover:bg-sky-50/40"
+            : "hover:bg-slate-50/80"
       }`}
     >
       <td

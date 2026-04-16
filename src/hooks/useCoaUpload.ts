@@ -12,6 +12,7 @@ export function useCoaUpload() {
   const [initialStage, setInitialStage] = useState<PipelineStage>("idle");
 
   const upload = useCallback(async (file: File) => {
+    setJobId(null);
     setUploading(true);
     setError(null);
     setFileName(file.name);
@@ -20,8 +21,9 @@ export function useCoaUpload() {
       setJobId(res.id);
       setInitialStage("intake");
       return res.id;
-    } catch {
-      setError("Upload could not be queued. Retry with a PDF or image CoA.");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Upload could not be queued.";
+      setError(message);
       return null;
     } finally {
       setUploading(false);

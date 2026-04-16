@@ -8,6 +8,8 @@ interface StatCardProps {
 }
 
 export function StatCard({ label, value, change, changePositive, icon, accent }: StatCardProps) {
+  const showDelta = change != null && change !== "";
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200/70 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
       <div className="flex items-start justify-between">
@@ -17,7 +19,7 @@ export function StatCard({ label, value, change, changePositive, icon, accent }:
         >
           {icon}
         </div>
-        {change && (
+        {showDelta ? (
           <span
             className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
               changePositive
@@ -36,7 +38,7 @@ export function StatCard({ label, value, change, changePositive, icon, accent }:
             )}
             {change}
           </span>
-        )}
+        ) : null}
       </div>
       <div className="mt-4">
         <p className="text-2xl font-bold text-slate-900 leading-none">{value}</p>

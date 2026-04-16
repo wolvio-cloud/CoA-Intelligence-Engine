@@ -1,66 +1,15 @@
 "use client";
 
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { DonutChart } from "@/components/dashboard/DonutChart";
 import { BarChart } from "@/components/dashboard/BarChart";
 import { TrendLine } from "@/components/dashboard/TrendLine";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
-import { MOCK_RECENT_SUBMISSIONS } from "@/lib/types";
-
-const MOCK_SUBMISSIONS = [
-  ...MOCK_RECENT_SUBMISSIONS,
-  {
-    id: "sub-9901",
-    filename: "Metformin_HCl_BP_LotF18.pdf",
-    created_at: new Date(Date.now() - 3 * 86400000).toISOString(),
-    stage: "complete" as const,
-    overall_status: "PASS" as const,
-    parameter_count: 14,
-  },
-  {
-    id: "sub-9855",
-    filename: "Amoxicillin_USP_batch7.pdf",
-    created_at: new Date(Date.now() - 4 * 86400000).toISOString(),
-    stage: "complete" as const,
-    overall_status: "FAIL" as const,
-    parameter_count: 13,
-  },
-  {
-    id: "sub-9800",
-    filename: "Atorvastatin_10mg_LotA9.pdf",
-    created_at: new Date(Date.now() - 5 * 86400000).toISOString(),
-    stage: "complete" as const,
-    overall_status: "PASS" as const,
-    parameter_count: 11,
-  },
-  {
-    id: "sub-9750",
-    filename: "Losartan_K_USP_LotB3.pdf",
-    created_at: new Date(Date.now() - 6 * 86400000).toISOString(),
-    stage: "complete" as const,
-    overall_status: "REVIEW" as const,
-    parameter_count: 10,
-  },
-];
-
-const TREND_DATA = [
-  { label: "Mon", value: 3 },
-  { label: "Tue", value: 5 },
-  { label: "Wed", value: 4 },
-  { label: "Thu", value: 7 },
-  { label: "Fri", value: 6 },
-  { label: "Sat", value: 2 },
-  { label: "Sun", value: 4 },
-];
-
-const SUPPLIER_PASS_RATE = [
-  { label: "Teva", value: 92, color: "#10b981" },
-  { label: "Cipla", value: 87, color: "#10b981" },
-  { label: "Sun", value: 78, color: "#f59e0b" },
-  { label: "Torrent", value: 95, color: "#10b981" },
-  { label: "Lupin", value: 83, color: "#f59e0b" },
-];
+import { listSubmissions } from "@/lib/api";
+import { buildLastSevenDayTrend, buildOutcomeBars, computeDashboardStats } from "@/lib/dashboardMetrics";
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -76,7 +25,7 @@ function QuickAction({ icon, label, sublabel, accent }: {
   accent: string;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-slate-200/70 bg-white px-4 py-3 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 cursor-pointer">
+    <div className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200/70 bg-white px-4 py-3 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow-md">
       <div
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
         style={{ backgroundColor: `${accent}18`, color: accent }}
@@ -84,8 +33,8 @@ function QuickAction({ icon, label, sublabel, accent }: {
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-slate-900 leading-tight">{label}</p>
-        <p className="text-xs text-slate-400 mt-0.5">{sublabel}</p>
+        <p className="text-sm font-semibold leading-tight text-slate-900">{label}</p>
+        <p className="mt-0.5 text-xs text-slate-400">{sublabel}</p>
       </div>
     </div>
   );
@@ -94,51 +43,78 @@ function QuickAction({ icon, label, sublabel, accent }: {
 export function DashboardPage() {
   const { user } = useAuth();
 
-  const total = MOCK_SUBMISSIONS.length;
-  const passing = MOCK_SUBMISSIONS.filter((s) => s.overall_status === "PASS").length;
-  const failing = MOCK_SUBMISSIONS.filter((s) => s.overall_status === "FAIL").length;
-  const reviewing = MOCK_SUBMISSIONS.filter((s) => s.overall_status === "REVIEW").length;
-  const warning = MOCK_SUBMISSIONS.filter((s) => s.overall_status === "WARNING").length;
-  const passRate = Math.round((passing / total) * 100);
+  const submissionsQuery = useQuery({
+    queryKey: ["coa-submissions", user?.id ?? "none"],
+    queryFn: () => listSubmissions(200),
+    enabled: Boolean(user?.id),
+    staleTime: 30_000,
+    refetchInterval: 45_000,
+  });
 
-  const donutSegments = [
-    { label: "Pass", value: passing, color: "#10b981" },
-    { label: "Warning", value: warning, color: "#f59e0b" },
-    { label: "Review", value: reviewing, color: "#06b6d4" },
-    { label: "Fail", value: failing, color: "#ef4444" },
-  ].filter((s) => s.value > 0);
+  const submissions = submissionsQuery.data ?? [];
+  const stats = useMemo(() => computeDashboardStats(submissions), [submissions]);
+  const trendData = useMemo(() => buildLastSevenDayTrend(submissions), [submissions]);
+  const outcomeBars = useMemo(() => buildOutcomeBars(submissions), [submissions]);
 
-  const recent = [...MOCK_SUBMISSIONS]
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 5);
+  const donutSegments = useMemo(
+    () =>
+      [
+        { label: "Pass", value: stats.passing, color: "#10b981" },
+        { label: "Warning", value: stats.warning, color: "#f59e0b" },
+        { label: "Review", value: stats.reviewing, color: "#06b6d4" },
+        { label: "Fail", value: stats.failing, color: "#ef4444" },
+        { label: "Error", value: stats.errors, color: "#ea580c" },
+      ].filter((s) => s.value > 0),
+    [stats],
+  );
+
+  const recent = useMemo(
+    () =>
+      [...submissions]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 8),
+    [submissions],
+  );
 
   const displayName = user?.displayName ?? user?.email?.split("@")[0] ?? "there";
   const greeting = getGreeting();
 
+  const showCharts = submissions.length > 0 || submissionsQuery.isLoading;
+
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-base font-semibold text-slate-900">{greeting}, {displayName}</h2>
-          <p className="mt-0.5 text-sm text-slate-500">Here&apos;s a summary of your CoA activity</p>
+          <h2 className="text-base font-semibold text-slate-900">
+            {greeting}, {displayName}
+          </h2>
+          <p className="mt-0.5 text-sm text-slate-500">Summary from your latest CoA submissions (live data)</p>
         </div>
-        <div className="flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white px-3.5 py-2 shadow-sm">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200/70 bg-white px-3.5 py-2 shadow-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
             <line x1="16" y1="2" x2="16" y2="6" />
             <line x1="8" y1="2" x2="8" y2="6" />
             <line x1="3" y1="10" x2="21" y2="10" />
           </svg>
-          <span className="text-xs font-medium text-slate-600">Last 7 days</span>
+          <span className="text-xs font-medium text-slate-600">Last 7 days trend</span>
+          {submissionsQuery.isFetching ? (
+            <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">Updating…</span>
+          ) : null}
         </div>
       </div>
 
+      {submissionsQuery.isError ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Could not load submissions. Check that the API is running and{" "}
+          <code className="rounded bg-white/80 px-1">NEXT_PUBLIC_API_BASE_URL</code> is set.
+        </div>
+      ) : null}
+
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
-          label="Total Submissions"
-          value={String(total)}
-          change="+12%"
-          changePositive
+          label="Total (loaded)"
+          value={submissionsQuery.isLoading ? "…" : String(stats.total)}
           accent="#2563eb"
           icon={
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -150,10 +126,8 @@ export function DashboardPage() {
           }
         />
         <StatCard
-          label="Pass Rate"
-          value={`${passRate}%`}
-          change="+3%"
-          changePositive
+          label="Pass rate (completed)"
+          value={submissionsQuery.isLoading ? "…" : `${stats.passRate}%`}
           accent="#10b981"
           icon={
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -162,10 +136,8 @@ export function DashboardPage() {
           }
         />
         <StatCard
-          label="Pending Review"
-          value={String(reviewing + warning)}
-          change="-1"
-          changePositive={false}
+          label="Review / warning"
+          value={submissionsQuery.isLoading ? "…" : String(stats.pendingReview)}
           accent="#f59e0b"
           icon={
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -175,10 +147,8 @@ export function DashboardPage() {
           }
         />
         <StatCard
-          label="Failed"
-          value={String(failing)}
-          change="+1"
-          changePositive={false}
+          label="Failed / error"
+          value={submissionsQuery.isLoading ? "…" : String(stats.failed)}
           accent="#ef4444"
           icon={
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -192,37 +162,66 @@ export function DashboardPage() {
 
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <TrendLine
-            data={TREND_DATA}
-            title="Submission Volume"
-            subtitle="CoAs submitted per day this week"
-            color="#2563eb"
-            fillColor="#2563eb"
-          />
+          {showCharts ? (
+            <TrendLine
+              data={trendData}
+              title="Submission volume"
+              subtitle="New submissions per day (last 7 days, UTC)"
+              color="#2563eb"
+              fillColor="#2563eb"
+            />
+          ) : (
+            <div className="flex min-h-[200px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-12 text-center">
+              <p className="text-sm font-medium text-slate-600">No submission history yet</p>
+              <p className="mt-1 max-w-sm text-xs text-slate-500">Upload a CoA to populate this trend chart.</p>
+            </div>
+          )}
         </div>
-        <DonutChart
-          segments={donutSegments}
-          title="Status Distribution"
-          subtitle="All completed submissions"
-          centerValue={String(total)}
-          centerLabel="Total"
-        />
+        {showCharts && donutSegments.length > 0 ? (
+          <DonutChart
+            segments={donutSegments}
+            title="Status distribution"
+            subtitle="By rolled-up lot outcome"
+            centerValue={submissionsQuery.isLoading ? "…" : String(stats.total)}
+            centerLabel="In view"
+          />
+        ) : !submissionsQuery.isLoading ? (
+          <div className="flex min-h-[200px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-12 text-center">
+            <p className="text-sm font-medium text-slate-600">No status breakdown</p>
+            <p className="mt-1 text-xs text-slate-500">Submit at least one CoA to see the distribution.</p>
+          </div>
+        ) : (
+          <div className="flex min-h-[200px] items-center justify-center rounded-2xl border border-slate-200/70 bg-white text-sm text-slate-400">
+            Loading…
+          </div>
+        )}
       </div>
 
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <RecentActivity submissions={recent} />
         </div>
-        <BarChart
-          data={SUPPLIER_PASS_RATE}
-          max={100}
-          title="Supplier Pass Rate"
-          subtitle="% passing by supplier"
-        />
+        {showCharts && outcomeBars.length > 0 ? (
+          <BarChart
+            data={outcomeBars}
+            max={Math.max(...outcomeBars.map((d) => d.value), 1)}
+            title="Outcome mix"
+            subtitle="Submissions per outcome (loaded set)"
+          />
+        ) : !submissionsQuery.isLoading ? (
+          <div className="flex min-h-[200px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-12 text-center">
+            <p className="text-sm font-medium text-slate-600">No outcome bars yet</p>
+            <p className="mt-1 text-xs text-slate-500">Outcomes appear after submissions are processed.</p>
+          </div>
+        ) : (
+          <div className="flex min-h-[200px] items-center justify-center rounded-2xl border border-slate-200/70 bg-white text-sm text-slate-400">
+            Loading…
+          </div>
+        )}
       </div>
 
       <div>
-        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Quick Actions</h3>
+        <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Quick actions</h3>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <QuickAction
             accent="#2563eb"

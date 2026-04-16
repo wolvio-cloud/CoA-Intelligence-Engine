@@ -1,12 +1,13 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { DocumentUpload } from "@/components/customize/DocumentUpload";
 import { SpecSettings } from "@/components/customize/SpecSettings";
 
 type Tab = "documents" | "specs";
 
-const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
+const TABS: { id: Tab; label: string; icon: ReactNode }[] = [
   {
     id: "documents",
     label: "Documents",
@@ -37,6 +38,9 @@ export function CustomizePage() {
 
   return (
     <div className="space-y-5">
+      <p className="text-sm text-slate-600">
+        Baseline setup is saved to <strong>your account</strong> (spec limits, matching product name, and reference documents).
+      </p>
       <div className="flex flex-wrap gap-2">
         {TABS.map((tab) => (
           <button

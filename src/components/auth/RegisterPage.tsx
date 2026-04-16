@@ -10,11 +10,12 @@ import { AuthPageShell } from "./AuthPageShell";
 const inputClass =
   "w-full rounded-lg border border-slate-200/90 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-slate-300 focus:ring-2 focus:ring-slate-900/[0.06]";
 
-export function LoginPage() {
-  const { user, loading: authLoading, signIn } = useAuth();
+export function RegisterPage() {
+  const { user, loading: authLoading, register } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,9 +32,14 @@ export function LoginPage() {
       return;
     }
 
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+
     setLoading(true);
     try {
-      await signIn(email.trim(), password);
+      await register(email.trim(), password, fullName.trim() || undefined);
       router.replace("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -51,14 +57,29 @@ export function LoginPage() {
   }
 
   return (
-    <AuthPageShell title="Sign in" subtitle="Use your work email and password to continue.">
+    <AuthPageShell title="Create account" subtitle="Set up access for your organization in a minute.">
       <form onSubmit={handleSubmit} className="space-y-4 px-6 py-6">
         <div className="space-y-1.5">
-          <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500" htmlFor="email">
+          <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500" htmlFor="reg-fullName">
+            Full name <span className="font-normal normal-case text-slate-400">(optional)</span>
+          </label>
+          <input
+            id="reg-fullName"
+            type="text"
+            autoComplete="name"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className={inputClass}
+            placeholder="Jane Smith"
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500" htmlFor="reg-email">
             Email
           </label>
           <input
-            id="email"
+            id="reg-email"
             type="email"
             autoComplete="email"
             required
@@ -70,18 +91,18 @@ export function LoginPage() {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500" htmlFor="password">
+          <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500" htmlFor="reg-password">
             Password
           </label>
           <input
-            id="password"
+            id="reg-password"
             type="password"
-            autoComplete="current-password"
+            autoComplete="new-password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className={inputClass}
-            placeholder="••••••••"
+            placeholder="At least 8 characters"
           />
         </div>
 
@@ -116,14 +137,14 @@ export function LoginPage() {
               <path d="M21 12a9 9 0 1 1-6.219-8.56" />
             </svg>
           )}
-          {loading ? "Signing in…" : "Sign in"}
+          {loading ? "Creating account…" : "Create account"}
         </button>
       </form>
 
       <AuthAlternateAction>
-        Don&apos;t have an account?{" "}
-        <Link href="/register" className="font-medium text-slate-800 transition hover:text-blue-700">
-          Register
+        Already have an account?{" "}
+        <Link href="/login" className="font-medium text-slate-800 transition hover:text-blue-700">
+          Log in
         </Link>
       </AuthAlternateAction>
     </AuthPageShell>

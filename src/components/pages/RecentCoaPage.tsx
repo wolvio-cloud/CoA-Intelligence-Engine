@@ -1,33 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { StatusBadge } from "@/components/results/StatusBadge";
 import { OverallStatus } from "@/components/results/OverallStatus";
+import { SubmissionsTable } from "@/components/submissions/SubmissionsTable";
 import { ResultTable } from "@/components/results/ResultTable";
 import { ParameterDetail } from "@/components/results/ParameterDetail";
 import { ExportButtons } from "@/components/export/ExportButtons";
 import { useCoaResult } from "@/hooks/useCoaResult";
-import { listSubmissions } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
+import { getCoaSubmissionSourceUrl, listSubmissions, submissionSourceViewable } from "@/lib/api";
 import type { CoaParameter, SubmissionSummary } from "@/lib/types";
 
 type View = "list" | "detail";
-
-function TimeAgo({ dateStr }: { dateStr: string }) {
-  const date = new Date(dateStr);
-  const diffMs = Date.now() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  const diffH = Math.floor(diffMin / 60);
-  const diffD = Math.floor(diffH / 24);
-
-  let label: string;
-  if (diffMin < 1) label = "Just now";
-  else if (diffMin < 60) label = `${diffMin}m ago`;
-  else if (diffH < 24) label = `${diffH}h ago`;
-  else if (diffD < 7) label = `${diffD}d ago`;
-  else label = date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-
-  return <span>{label}</span>;
-}
 
 function EmptyState() {
   return (
@@ -44,50 +28,6 @@ function EmptyState() {
   );
 }
 
-function SubmissionCard({
-  submission,
-  onSelect,
-}: {
-  submission: SubmissionSummary;
-  onSelect: (s: SubmissionSummary) => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onSelect(submission)}
-      className="group flex w-full items-start gap-4 rounded-2xl border border-slate-200/70 bg-white p-4 text-left shadow-sm hover:border-blue-200 hover:shadow-md transition-all duration-150"
-    >
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-          <line x1="16" y1="13" x2="8" y2="13"/>
-          <line x1="16" y1="17" x2="8" y2="17"/>
-        </svg>
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">
-          {submission.filename}
-        </p>
-        <div className="mt-1.5 flex flex-wrap items-center gap-2">
-          <StatusBadge status={submission.overall_status} />
-          <span className="text-xs text-slate-400">
-            {submission.parameter_count > 0 ? `${submission.parameter_count} params` : "—"}
-          </span>
-          <span className="text-xs text-slate-400">
-            <TimeAgo dateStr={submission.created_at} />
-          </span>
-        </div>
-      </div>
-      <div className="shrink-0 text-slate-300 group-hover:text-blue-400 transition-colors mt-1">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M9 18l6-6-6-6"/>
-        </svg>
-      </div>
-    </button>
-  );
-}
-
 function DetailView({
   submission,
   onBack,
@@ -96,7 +36,22 @@ function DetailView({
   onBack: () => void;
 }) {
   const [selectedParam, setSelectedParam] = useState<CoaParameter | null>(null);
+  const [openingDoc, setOpeningDoc] = useState(false);
   const { data, loading } = useCoaResult(submission.id, true);
+
+  const openUploaded = async () => {
+    if (!submissionSourceViewable(submission.file_path)) return;
+    setOpeningDoc(true);
+    try {
+      const { url } = await getCoaSubmissionSourceUrl(submission.id);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      console.error(e);
+      window.alert(e instanceof Error ? e.message : "Could not open the uploaded file.");
+    } finally {
+      setOpeningDoc(false);
+    }
+  };
 
   useEffect(() => {
     if (!data?.parameters?.length) return;
@@ -107,53 +62,75 @@ function DetailView({
   }, [data]);
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <button
-          type="button"
-          onClick={onBack}
-          className="inline-flex items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm hover:bg-slate-50 transition-colors"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <path d="M19 12H5M12 5l-7 7 7 7"/>
-          </svg>
-          Back to list
-        </button>
-        {data && <ExportButtons jobId={data.id} />}
-      </div>
+    <div className="space-y-8">
+      <header className="flex flex-col gap-4 rounded-2xl border border-slate-200/70 bg-white px-4 py-3.5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex w-fit items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-white sm:text-sm"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+              <path d="M19 12H5M12 5l-7 7 7 7"/>
+            </svg>
+            Back to list
+          </button>
+          <div className="hidden h-9 w-px shrink-0 bg-slate-200 sm:block" aria-hidden />
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Submission review</p>
+            <p className="truncate text-sm font-semibold text-navy sm:text-base" title={data?.filename ?? submission.filename}>
+              {loading ? "Loading…" : data?.filename ?? submission.filename}
+            </p>
+          </div>
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {submissionSourceViewable(submission.file_path) ? (
+            <button
+              type="button"
+              onClick={() => void openUploaded()}
+              disabled={openingDoc}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-800 disabled:opacity-50"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              {openingDoc ? "Opening…" : "View upload"}
+            </button>
+          ) : null}
+          {data ? <ExportButtons jobId={data.id} compact /> : null}
+        </div>
+      </header>
 
       {loading || !data ? (
-        <div className="flex min-h-[200px] items-center justify-center rounded-2xl border border-slate-200/70 bg-white shadow-sm">
+        <div className="flex min-h-[220px] items-center justify-center rounded-2xl border border-slate-200/70 bg-white shadow-sm">
           <div className="flex flex-col items-center gap-3 text-slate-400">
-            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="h-6 w-6 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
               <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
             </svg>
-            <p className="text-sm">Loading results…</p>
+            <p className="text-sm font-medium text-slate-500">Loading validation workspace…</p>
           </div>
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm overflow-hidden">
-            <div className="p-5">
-              <OverallStatus
-                status={data.overall_status}
-                productName={data.product_match.matched_product}
-                filename={data.filename}
-                matchScore={data.product_match.match_score}
-              />
-            </div>
-          </div>
+          <OverallStatus
+            status={data.overall_status}
+            productName={data.product_match.matched_product}
+            filename={data.filename}
+            submissionId={data.id}
+            matchScore={data.product_match.match_score}
+            statusSummary={data.status_summary}
+          />
 
-          <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_min(100%,400px)] xl:items-start xl:gap-8">
             <ResultTable
               parameters={data.parameters}
               selectedId={selectedParam?.id ?? null}
               onSelect={setSelectedParam}
             />
-            <ParameterDetail
-              param={selectedParam}
-              onClose={() => setSelectedParam(null)}
-            />
+            <div className="xl:sticky xl:top-4">
+              <ParameterDetail param={selectedParam} onClose={() => setSelectedParam(null)} />
+            </div>
           </div>
         </>
       )}
@@ -162,6 +139,7 @@ function DetailView({
 }
 
 export function RecentCoaPage() {
+  const { user } = useAuth();
   const [submissions, setSubmissions] = useState<SubmissionSummary[]>([]);
   const [loadingList, setLoadingList] = useState(true);
   const [selected, setSelected] = useState<SubmissionSummary | null>(null);
@@ -169,6 +147,11 @@ export function RecentCoaPage() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
+    if (!user?.id) {
+      setSubmissions([]);
+      setLoadingList(false);
+      return;
+    }
     let cancelled = false;
     setLoadingList(true);
     listSubmissions()
@@ -176,7 +159,7 @@ export function RecentCoaPage() {
       .catch((err) => console.error("Failed to load submissions:", err))
       .finally(() => { if (!cancelled) setLoadingList(false); });
     return () => { cancelled = true; };
-  }, []);
+  }, [user?.id]);
 
   const handleSelect = (s: SubmissionSummary) => {
     setSelected(s);
@@ -186,6 +169,17 @@ export function RecentCoaPage() {
   const handleBack = () => {
     setSelected(null);
     setView("list");
+  };
+
+  const handleViewUploaded = async (s: SubmissionSummary) => {
+    if (!submissionSourceViewable(s.file_path)) return;
+    try {
+      const { url } = await getCoaSubmissionSourceUrl(s.id);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      console.error(e);
+      window.alert(e instanceof Error ? e.message : "Could not open the uploaded file.");
+    }
   };
 
   const filtered = submissions.filter((s) =>
@@ -222,7 +216,7 @@ export function RecentCoaPage() {
           </div>
         </div>
 
-        <div className="p-4">
+        <div className="p-4 sm:p-5">
           {loadingList ? (
             <div className="flex items-center justify-center py-16 text-slate-400">
               <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -230,14 +224,20 @@ export function RecentCoaPage() {
               </svg>
               <span className="text-sm">Loading submissions…</span>
             </div>
-          ) : filtered.length === 0 ? (
+          ) : submissions.length === 0 ? (
             <EmptyState />
-          ) : (
-            <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-              {filtered.map((s) => (
-                <SubmissionCard key={s.id} submission={s} onSelect={handleSelect} />
-              ))}
+          ) : filtered.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 py-14 text-center">
+              <p className="text-sm font-medium text-slate-600">No files match your search</p>
+              <p className="mt-1 text-xs text-slate-400">Try another filename or clear the search box</p>
             </div>
+          ) : (
+            <SubmissionsTable
+              submissions={filtered}
+              onRowClick={handleSelect}
+              onViewUploaded={handleViewUploaded}
+              variant="default"
+            />
           )}
         </div>
       </div>

@@ -31,61 +31,71 @@ export function ResultTable({
   }, [parameters, filter]);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200/90 bg-white shadow-card">
-      <div className="flex flex-col gap-4 border-b border-slate-100 px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h3 className="text-sm font-semibold text-navy lg:text-base">Parameters</h3>
-          <p className="mt-1 text-xs text-slate-500 lg:text-sm">
-            {rows.length} of {parameters.length} shown · select a row for detail
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {FILTER_OPTIONS.map(({ value, label }) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setFilter(value)}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors lg:text-sm lg:py-2 ${
-                filter === value
-                  ? statusFilterChipClasses[value].active
-                  : statusFilterChipClasses[value].inactive
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+    <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-4px_rgba(15,23,42,0.06)]">
+      <div className="border-b border-slate-100 bg-slate-50/80 px-4 py-4 sm:px-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h3 className="text-sm font-semibold tracking-tight text-navy">Parameters</h3>
+            <p className="mt-1 text-xs text-slate-500">
+              <span className="font-medium tabular-nums text-slate-700">{rows.length}</span>
+              <span className="text-slate-400"> / </span>
+              <span className="tabular-nums">{parameters.length}</span>
+              <span className="text-slate-400"> shown · select a row for detail</span>
+            </p>
+          </div>
+          <div
+            className="flex flex-wrap gap-1 rounded-lg border border-slate-200/90 bg-white p-0.5 shadow-sm"
+            role="group"
+            aria-label="Filter by status"
+          >
+            {FILTER_OPTIONS.map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setFilter(value)}
+                className={`rounded-md px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wide transition-all sm:px-3 ${
+                  filter === value
+                    ? `${statusFilterChipClasses[value].active} shadow-sm`
+                    : statusFilterChipClasses[value].inactive
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[720px] text-left">
+        <table className="w-full min-w-[720px] border-collapse text-left">
           <thead>
-            <tr className="border-b border-slate-200 bg-brand-light">
-              <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-navy sm:px-5">
+            <tr className="border-b border-slate-200 bg-white">
+              <th className="whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:px-5">
                 Test
               </th>
-              <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-navy sm:px-5">
+              <th className="whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:px-5">
                 Result
               </th>
-              <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-navy sm:px-5">
+              <th className="whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:px-5">
                 Unit
               </th>
-              <th className="hidden px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-navy sm:px-5 lg:table-cell">
+              <th className="hidden whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:px-5 lg:table-cell">
                 Specification
               </th>
-              <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-navy sm:px-5">
+              <th className="whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:px-5">
                 Status
               </th>
-              <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-navy sm:px-5">
+              <th className="whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:px-5">
                 Confidence
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {rows.map((p) => (
+            {rows.map((p, i) => (
               <ParameterRow
                 key={p.id}
                 param={p}
                 selected={p.id === selectedId}
+                zebra={i % 2 === 1}
                 onSelect={onSelect}
               />
             ))}

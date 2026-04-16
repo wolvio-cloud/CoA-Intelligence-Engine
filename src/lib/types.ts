@@ -33,6 +33,8 @@ export interface ProductMatch {
   match_method: string;
 }
 
+export type StatusSummary = Partial<Record<ValidationStatusKey, number>>;
+
 export interface CoaJobResult {
   id: string;
   filename: string;
@@ -41,6 +43,7 @@ export interface CoaJobResult {
   product_match: ProductMatch;
   parameters: CoaParameter[];
   overall_status: ValidationStatusKey;
+  status_summary?: StatusSummary;
 }
 
 export interface SubmissionSummary {
@@ -50,6 +53,8 @@ export interface SubmissionSummary {
   stage: Exclude<PipelineStage, "idle">;
   overall_status: ValidationStatusKey;
   parameter_count: number;
+  /** Storage path from API; `pending:…` until upload finishes. */
+  file_path?: string | null;
 }
 
 export const MOCK_JOB_RESULT: CoaJobResult = {
@@ -64,6 +69,7 @@ export const MOCK_JOB_RESULT: CoaJobResult = {
     match_method: "substring_hit",
   },
   overall_status: "WARNING",
+  status_summary: { PASS: 10, WARNING: 2, FAIL: 1, REVIEW: 2, ERROR: 0 },
   parameters: [
     {
       id: "p1",

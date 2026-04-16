@@ -1,7 +1,8 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { StatusBadge } from "@/components/results/StatusBadge";
+import { useAuth } from "@/context/AuthContext";
 import { listSubmissions } from "@/lib/api";
 import type { SubmissionSummary } from "@/lib/types";
 
@@ -17,21 +18,13 @@ export function RecentSubmissions({
   onRequestCollapse?: () => void;
   className?: string;
 }) {
-  const [items, setItems] = useState<SubmissionSummary[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-    listSubmissions()
-      .then((submissions) => {
-        if (!cancelled) setItems(submissions);
-      })
-      .catch((error) => {
-        console.error("Unable to load recent submissions:", error);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { user } = useAuth();
+  const { data: items = [], isLoading } = useQuery({
+    queryKey: ["coa-submissions", user?.id ?? "none"],
+    queryFn: () => listSubmissions(200),
+    enabled: Boolean(user?.id),
+    refetchInterval: 5000,
+  });
 
   return (
     <div
@@ -52,31 +45,55 @@ export function RecentSubmissions({
           ) : null}
         </div>
       </div>
-      <ul className="mt-1 min-h-0 flex-1 divide-y divide-slate-100 overflow-y-auto overscroll-contain">
-        {items.map((s) => (
-          <li key={s.id}>
-            <button
-              type="button"
-              onClick={() => onSelect(s)}
-              className={`flex w-full flex-col gap-1.5 py-3.5 text-left transition-colors ${
-                activeId === s.id ? "text-navy" : "text-brand-slate hover:text-navy"
-              }`}
-            >
-              <span className="truncate text-[12px] font-medium leading-snug">{s.filename}</span>
-              <span className="font-mono text-[11px] text-slate-400">
-                {new Date(s.created_at).toLocaleString(undefined, {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                })}
-              </span>
-              <div className="flex items-center justify-between gap-2 pt-0.5">
-                <StatusBadge status={s.overall_status} />
-                <span className="text-[11px] text-slate-500">{s.parameter_count} parameters</span>
-              </div>
-            </button>
-          </li>
-        ))}
-      </ul>
+      <div className="mt-1 min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        {isLoading && <p className="py-4 text-center text-[12px] text-slate-400">Loading…</p>}
+        {!isLoading && items.length === 0 && (
+          <p className="py-4 text-center text-[12px] text-slate-400">No submissions yet</p>
+        )}
+        {!isLoading && items.length > 0 ? (
+          <table className="w-full border-collapse text-left text-[11px]">
+            <thead>
+              <tr className="border-b border-slate-100 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                <th scope="col" className="py-2 pr-1 font-semibold">
+                  Document
+                </th>
+                <th scope="col" className="w-14 py-2 text-right font-semibold">
+                  Outcome
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {items.map((s) => (
+                <tr key={s.id}>
+                  <td className="py-2.5 pr-1 align-top">
+                    <button
+                      type="button"
+                      onClick={() => onSelect(s)}
+                      className={`w-full rounded-md px-1 py-0.5 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/30 ${
+                        activeId === s.id ? "bg-sky-50 text-navy" : "text-brand-slate hover:bg-slate-50 hover:text-navy"
+                      }`}
+                    >
+                      <span className="line-clamp-2 font-medium leading-snug">{s.filename}</span>
+                      <span className="mt-0.5 block font-mono text-[10px] text-slate-400">
+                        {new Date(s.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                      </span>
+                    </button>
+                  </td>
+                  <td className="py-2.5 pl-1 align-top text-right">
+                    <button
+                      type="button"
+                      onClick={() => onSelect(s)}
+                      className="inline-flex focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/30"
+                    >
+                      <StatusBadge status={s.overall_status} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : null}
+      </div>
     </div>
   );
 }

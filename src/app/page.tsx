@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { LoginPage } from "@/components/auth/LoginPage";
 import { Sidebar, type Page } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
 import { DashboardPage } from "@/components/pages/DashboardPage";
@@ -11,10 +11,29 @@ import { RecentCoaPage } from "@/components/pages/RecentCoaPage";
 import { CustomizePage } from "@/components/pages/CustomizePage";
 
 export default function HomePage() {
-  const { user, signOut } = useAuth();
+  const { user, loading, signOut } = useAuth();
+  const router = useRouter();
   const [activePage, setActivePage] = useState<Page>("dashboard");
 
-  if (!user) return <LoginPage />;
+  useEffect(() => {
+    if (!loading && !user) router.replace("/login");
+  }, [loading, user, router]);
+
+  if (loading) {
+    return (
+      <div className="flex h-full min-h-screen items-center justify-center bg-[#f0f2f5] text-sm text-slate-500">
+        Loading…
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex h-full min-h-screen items-center justify-center bg-[#f0f2f5] text-sm text-slate-500">
+        Redirecting to sign in…
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full bg-[#f0f2f5]">

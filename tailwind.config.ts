@@ -9,6 +9,10 @@ const config: Config = {
       colors: {
         canvas: "#f0f2f5",
         navy: "#1a2332",
+        /** Match src/config/brand.ts — required for `bg-brand-blue`, `text-brand-slate`, etc. */
+        "brand-blue": "#2563eb",
+        "brand-slate": "#475569",
+        "brand-light": "#f1f5f9",
       },
       fontFamily: {
         sans: ["var(--font-sans)", "Inter", "system-ui", "sans-serif"],

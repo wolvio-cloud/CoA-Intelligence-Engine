@@ -5,7 +5,8 @@ import { brand } from "@/config/brand";
 
 export type Page = "dashboard" | "new-coa" | "recent-coa" | "customize";
 
-interface MockUser {
+interface AppUser {
+  id: string;
   email: string;
   displayName: string;
 }
@@ -14,7 +15,7 @@ interface SidebarProps {
   activePage: Page;
   onNavigate: (page: Page) => void;
   onLogout: () => Promise<void>;
-  user: MockUser;
+  user: AppUser;
 }
 
 const navGroups: {
