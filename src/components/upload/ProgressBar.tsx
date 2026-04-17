@@ -11,6 +11,11 @@ const STEP_COPY: Record<
     short: string;
   }
 > = {
+  queue: {
+    title: "Queue",
+    detail: "File is being received and lined up for the pipeline.",
+    short: "Queue",
+  },
   intake: {
     title: "Intake & checksum",
     detail: "File received, format check, and secure handoff to the pipeline.",
@@ -86,7 +91,7 @@ function PipelineStepRail({
           const node = (
             <div
               key={s}
-              className="flex w-[18%] max-w-[5rem] min-w-[3.35rem] shrink-0 flex-col items-center sm:max-w-[5.75rem]"
+              className="flex min-w-0 flex-1 max-w-[6rem] shrink-0 flex-col items-center sm:max-w-[7rem]"
             >
               <div
                 className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-[11px] font-bold transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:h-11 sm:w-11 sm:text-xs ${
@@ -161,6 +166,13 @@ export function ProgressBar({
   fileName,
   awaitingSubmission = false,
   hasJobId = false,
+  liveScheduleHint,
+  /** Drives the bottom step rail by index (0 = Intake). When set, overrides index-from-`stage`. */
+  visualStepIndex,
+  /** When true, "complete" still uses the stepper layout instead of the full-screen completion card. */
+  suppressCompletionSplash = false,
+  /** Only the pipeline step rail (no % bar, queued, or step counter). */
+  stepperOnly = false,
 }: {
   progress: number;
   stage: PipelineStage;
@@ -169,12 +181,47 @@ export function ProgressBar({
   fileName?: string | null;
   awaitingSubmission?: boolean;
   hasJobId?: boolean;
+  /** When set, replaces per-stage detail copy during live processing (e.g. time-based stepper). */
+  liveScheduleHint?: string;
+  visualStepIndex?: number | null;
+  suppressCompletionSplash?: boolean;
+  stepperOnly?: boolean;
 }) {
   const effectiveStage: PipelineStage =
     !awaitingSubmission && stage === "idle" && hasJobId ? "intake" : stage;
   const activeIdx = stages.indexOf(effectiveStage as (typeof stages)[number]);
-  const railIndex = activeIdx < 0 ? 0 : Math.min(activeIdx, stages.length - 1);
-  const isFinished = effectiveStage === "complete" && !awaitingSubmission;
+  const railIndexFromStage = activeIdx < 0 ? 0 : Math.min(activeIdx, stages.length - 1);
+  const uploadMode = awaitingSubmission;
+  /** Prefer explicit visual index (time-based stepper) even while the browser upload is in flight. */
+  const railActiveIndex =
+    visualStepIndex != null && Number.isFinite(visualStepIndex)
+      ? Math.max(0, Math.min(Math.floor(visualStepIndex), stages.length - 1))
+      : uploadMode
+        ? 0
+        : railIndexFromStage;
+
+  if (stepperOnly) {
+    return (
+      <div className="relative flex min-h-[min(280px,50dvh)] flex-col justify-center overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/80 px-4 py-8 shadow-[0_4px_40px_rgba(26,35,50,0.08)] sm:px-8 sm:py-10">
+        {fileName ? (
+          <p
+            className="mx-auto mb-6 max-w-full truncate px-2 text-center text-xs font-medium text-slate-600 sm:text-sm"
+            title={fileName}
+          >
+            {fileName}
+          </p>
+        ) : null}
+        <PipelineStepRail
+          stages={stages}
+          activeIndex={railActiveIndex}
+          forceFlowOnFirstSegment={uploadMode}
+        />
+      </div>
+    );
+  }
+
+  const isFinished =
+    effectiveStage === "complete" && !awaitingSubmission && !suppressCompletionSplash;
   const currentCopy =
     effectiveStage !== "idle"
       ? STEP_COPY[effectiveStage] ?? { title: label, detail: "", short: label }
@@ -228,9 +275,6 @@ export function ProgressBar({
     );
   }
 
-  const uploadMode = awaitingSubmission;
-  const railActiveIndex = uploadMode ? 0 : railIndex;
-
   return (
     <div className="relative flex max-h-[min(640px,78dvh)] flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/80 shadow-[0_4px_40px_rgba(26,35,50,0.08)]">
       <div
@@ -252,8 +296,8 @@ export function ProgressBar({
             </h2>
             <p className="mt-2 line-clamp-3 text-sm leading-snug text-brand-slate sm:text-[15px]">
               {uploadMode
-                ? "Your browser is uploading the document; the API stores it in Supabase. Stage markers below advance automatically as the server reports each step."
-                : currentCopy?.detail ?? ""}
+                ? "Your browser is uploading the document; the API stores it in Supabase. When the upload completes, the pipeline stepper starts on a fixed schedule."
+                : liveScheduleHint ?? currentCopy?.detail ?? ""}
             </p>
           </div>
           {fileName ? (

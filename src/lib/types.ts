@@ -3,6 +3,7 @@ export type { ValidationStatusKey };
 
 export type PipelineStage =
   | "idle"
+  | "queue"
   | "intake"
   | "extract"
   | "validate"
@@ -53,8 +54,6 @@ export interface SubmissionSummary {
   stage: Exclude<PipelineStage, "idle">;
   overall_status: ValidationStatusKey;
   parameter_count: number;
-  /** Storage path from API; `pending:…` until upload finishes. */
-  file_path?: string | null;
 }
 
 export const MOCK_JOB_RESULT: CoaJobResult = {

@@ -8,7 +8,7 @@ import { ParameterDetail } from "@/components/results/ParameterDetail";
 import { ExportButtons } from "@/components/export/ExportButtons";
 import { useCoaResult } from "@/hooks/useCoaResult";
 import { useAuth } from "@/context/AuthContext";
-import { getCoaSubmissionSourceUrl, listSubmissions, submissionSourceViewable } from "@/lib/api";
+import { listSubmissions } from "@/lib/api";
 import type { CoaParameter, SubmissionSummary } from "@/lib/types";
 
 type View = "list" | "detail";
@@ -36,22 +36,7 @@ function DetailView({
   onBack: () => void;
 }) {
   const [selectedParam, setSelectedParam] = useState<CoaParameter | null>(null);
-  const [openingDoc, setOpeningDoc] = useState(false);
   const { data, loading } = useCoaResult(submission.id, true);
-
-  const openUploaded = async () => {
-    if (!submissionSourceViewable(submission.file_path)) return;
-    setOpeningDoc(true);
-    try {
-      const { url } = await getCoaSubmissionSourceUrl(submission.id);
-      window.open(url, "_blank", "noopener,noreferrer");
-    } catch (e) {
-      console.error(e);
-      window.alert(e instanceof Error ? e.message : "Could not open the uploaded file.");
-    } finally {
-      setOpeningDoc(false);
-    }
-  };
 
   useEffect(() => {
     if (!data?.parameters?.length) return;
@@ -84,20 +69,6 @@ function DetailView({
           </div>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
-          {submissionSourceViewable(submission.file_path) ? (
-            <button
-              type="button"
-              onClick={() => void openUploaded()}
-              disabled={openingDoc}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-800 disabled:opacity-50"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-              {openingDoc ? "Opening…" : "View upload"}
-            </button>
-          ) : null}
           {data ? <ExportButtons jobId={data.id} compact /> : null}
         </div>
       </header>
@@ -171,27 +142,8 @@ export function RecentCoaPage() {
     setView("list");
   };
 
-  const handleViewUploaded = async (s: SubmissionSummary) => {
-    if (!submissionSourceViewable(s.file_path)) return;
-    // Open a blank window synchronously (inside the click event) so browsers
-    // don't treat it as a popup and block it. We set the URL after the await.
-    const win = window.open("", "_blank", "noopener,noreferrer");
-    try {
-      const { url } = await getCoaSubmissionSourceUrl(s.id);
-      if (win) {
-        win.location.href = url;
-      } else {
-        window.open(url, "_blank", "noopener,noreferrer");
-      }
-    } catch (e) {
-      win?.close();
-      console.error(e);
-      window.alert(e instanceof Error ? e.message : "Could not open the uploaded file.");
-    }
-  };
-
   const filtered = submissions.filter((s) =>
-    s.filename.toLowerCase().includes(search.toLowerCase())
+    s.filename.toLowerCase().includes(search.toLowerCase()),
   );
 
   if (view === "detail" && selected) {
@@ -211,7 +163,13 @@ export function RecentCoaPage() {
           <div className="relative">
             <svg
               className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-              width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
             >
               <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
             </svg>
@@ -243,7 +201,6 @@ export function RecentCoaPage() {
             <SubmissionsTable
               submissions={filtered}
               onRowClick={handleSelect}
-              onViewUploaded={handleViewUploaded}
               variant="default"
             />
           )}

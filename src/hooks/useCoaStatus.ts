@@ -6,6 +6,7 @@ import { fetchStatus } from "@/lib/api";
 import type { PipelineStage } from "@/lib/types";
 
 const STAGE_LABELS: Record<Exclude<PipelineStage, "idle">, string> = {
+  queue: "Queued for processing",
   intake: "Intake & checksum",
   extract: "Vision + structured extract",
   validate: "Spec compare & matching",

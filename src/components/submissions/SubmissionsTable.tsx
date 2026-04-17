@@ -1,7 +1,6 @@
 "use client";
 
 import type { SubmissionSummary } from "@/lib/types";
-import { submissionSourceViewable } from "@/lib/api";
 import { StatusBadge } from "@/components/results/StatusBadge";
 
 function timeAgo(dateStr: string): string {
@@ -53,17 +52,13 @@ function FileIcon({ className }: { className?: string }) {
 export function SubmissionsTable({
   submissions,
   onRowClick,
-  onViewUploaded,
   variant = "default",
 }: {
   submissions: SubmissionSummary[];
   onRowClick?: (s: SubmissionSummary) => void;
-  /** When set, shows a View action for rows with an uploaded file in storage. */
-  onViewUploaded?: (s: SubmissionSummary) => void | Promise<void>;
   variant?: "default" | "compact";
 }) {
   const compact = variant === "compact";
-  const showView = Boolean(onViewUploaded);
   const th = compact
     ? "px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wide text-navy"
     : "px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-navy sm:px-5";
@@ -90,11 +85,6 @@ export function SubmissionsTable({
             <th scope="col" className={`${th} text-right`}>
               Submitted
             </th>
-            {showView ? (
-              <th scope="col" className={`${th} w-[4.5rem] text-center`}>
-                View
-              </th>
-            ) : null}
             {rowInteractive ? (
               <th scope="col" className={`${th} w-12 pr-4 text-center sm:pr-5`}>
                 <span className="sr-only">Open</span>
@@ -161,23 +151,6 @@ export function SubmissionsTable({
               <td className={`${td} text-right text-xs tabular-nums text-slate-500`}>
                 <span title={new Date(s.created_at).toLocaleString()}>{timeAgo(s.created_at)}</span>
               </td>
-              {showView ? (
-                <td className={`${td} text-center`} onClick={(e) => e.stopPropagation()}>
-                  {submissionSourceViewable(s.file_path) ? (
-                    <button
-                      type="button"
-                      onClick={() => void onViewUploaded!(s)}
-                      className="rounded-lg border border-slate-200 px-2 py-1 text-[11px] font-semibold text-slate-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-800"
-                    >
-                      View
-                    </button>
-                  ) : (
-                    <span className="text-[11px] text-slate-400" title="File not ready yet">
-                      —
-                    </span>
-                  )}
-                </td>
-              ) : null}
               {rowInteractive ? (
                 <td className={`${td} w-12 pr-4 text-center text-slate-300 group-hover:text-blue-500 sm:pr-5`}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>

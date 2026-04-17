@@ -314,12 +314,6 @@ function parseListOverallStatus(raw: unknown, fallback: ValidationStatusKey): Va
   return fallback;
 }
 
-export function submissionSourceViewable(filePath: string | null | undefined): boolean {
-  if (filePath == null || typeof filePath !== "string") return false;
-  const p = filePath.trim();
-  return p.length > 0 && !p.startsWith("pending:");
-}
-
 export async function listSubmissions(limit = 100): Promise<SubmissionSummary[]> {
   const q = new URLSearchParams({ limit: String(Math.min(500, Math.max(1, limit))) });
   const data = await fetchJson<any[]>(`${API_BASE}/submissions?${q.toString()}`);
@@ -335,17 +329,8 @@ export async function listSubmissions(limit = 100): Promise<SubmissionSummary[]>
       parameter_count: Number(
         item.parameter_count != null ? item.parameter_count : item.page_count ?? 0,
       ),
-      file_path: item.file_path ?? null,
     };
   });
-}
-
-export async function getCoaSubmissionSourceUrl(
-  submissionId: string,
-): Promise<{ url: string; filename?: string | null }> {
-  return fetchJson<{ url: string; filename?: string | null }>(
-    `${API_BASE}/submissions/${encodeURIComponent(submissionId)}/source-url`,
-  );
 }
 
 export function exportUrl(jobId: string, format: "csv" | "pdf"): string {
