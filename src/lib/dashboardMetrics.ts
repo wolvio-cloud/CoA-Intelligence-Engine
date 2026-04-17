@@ -51,8 +51,22 @@ export function buildOutcomeBars(submissions: SubmissionSummary[]): OutcomeBar[]
 export function computeDashboardStats(submissions: SubmissionSummary[]) {
   const total = submissions.length;
   const completed = submissions.filter((s) => s.stage === "complete");
-  const pass = completed.filter((s) => s.overall_status === "PASS").length;
-  const passRate = completed.length ? Math.round((pass / completed.length) * 100) : 0;
+  
+  let totalParams = 0;
+  let passedParams = 0;
+  for (const s of completed) {
+    if (s.parameter_count > 0) {
+      totalParams += s.parameter_count;
+      if (s.status_summary?.PASS !== undefined) {
+        passedParams += s.status_summary.PASS;
+      } else if (s.overall_status === "PASS") {
+        passedParams += s.parameter_count; // Fallback
+      }
+    }
+  }
+  
+  const passRate = totalParams > 0 ? Math.round((passedParams / totalParams) * 100) : 0;
+  
   const failed = submissions.filter((s) => s.overall_status === "FAIL" || s.overall_status === "ERROR").length;
   const pendingReview = submissions.filter(
     (s) => s.overall_status === "REVIEW" || s.overall_status === "WARNING",

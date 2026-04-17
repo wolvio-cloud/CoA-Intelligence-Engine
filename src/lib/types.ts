@@ -54,6 +54,7 @@ export interface SubmissionSummary {
   stage: Exclude<PipelineStage, "idle">;
   overall_status: ValidationStatusKey;
   parameter_count: number;
+  status_summary?: StatusSummary;
 }
 
 export const MOCK_JOB_RESULT: CoaJobResult = {
@@ -231,6 +232,7 @@ export const MOCK_RECENT_SUBMISSIONS: SubmissionSummary[] = [
     stage: "complete",
     overall_status: "WARNING",
     parameter_count: 15,
+    status_summary: { PASS: 10, WARNING: 2, FAIL: 1, REVIEW: 2, ERROR: 0 },
   },
   {
     id: "sub-8841",
@@ -239,6 +241,7 @@ export const MOCK_RECENT_SUBMISSIONS: SubmissionSummary[] = [
     stage: "complete",
     overall_status: "PASS",
     parameter_count: 12,
+    status_summary: { PASS: 12, WARNING: 0, FAIL: 0, REVIEW: 0, ERROR: 0 },
   },
   {
     id: "sub-8830",
@@ -247,5 +250,6 @@ export const MOCK_RECENT_SUBMISSIONS: SubmissionSummary[] = [
     stage: "complete",
     overall_status: "REVIEW",
     parameter_count: 11,
+    status_summary: { PASS: 8, WARNING: 1, FAIL: 0, REVIEW: 2, ERROR: 0 },
   },
 ];

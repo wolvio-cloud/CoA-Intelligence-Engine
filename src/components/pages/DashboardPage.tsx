@@ -18,14 +18,15 @@ function getGreeting(): string {
   return "Good evening";
 }
 
-function QuickAction({ icon, label, sublabel, accent }: {
+function QuickAction({ icon, label, sublabel, accent, onClick }: {
   icon: React.ReactNode;
   label: string;
   sublabel: string;
   accent: string;
+  onClick?: () => void;
 }) {
   return (
-    <div className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200/70 bg-white px-4 py-3 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow-md">
+    <div onClick={onClick} className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200/70 bg-white px-4 py-3 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow-md">
       <div
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
         style={{ backgroundColor: `${accent}18`, color: accent }}
@@ -40,7 +41,7 @@ function QuickAction({ icon, label, sublabel, accent }: {
   );
 }
 
-export function DashboardPage() {
+export function DashboardPage({ onNavigate }: { onNavigate?: (page: any) => void }) {
   const { user } = useAuth();
 
   const submissionsQuery = useQuery({
@@ -126,7 +127,7 @@ export function DashboardPage() {
           }
         />
         <StatCard
-          label="Pass rate (completed)"
+          label="Pass rate (all checks)"
           value={submissionsQuery.isLoading ? "…" : `${stats.passRate}%`}
           accent="#10b981"
           icon={
@@ -222,11 +223,12 @@ export function DashboardPage() {
 
       <div>
         <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Quick actions</h3>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-2">
           <QuickAction
             accent="#2563eb"
             label="Submit New CoA"
             sublabel="Upload and analyse a document"
+            onClick={() => onNavigate?.("new-coa")}
             icon={
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -239,21 +241,11 @@ export function DashboardPage() {
             accent="#10b981"
             label="View Recent CoAs"
             sublabel="Browse all past submissions"
+            onClick={() => onNavigate?.("recent-coa")}
             icon={
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                 <circle cx="12" cy="12" r="3" />
-              </svg>
-            }
-          />
-          <QuickAction
-            accent="#f59e0b"
-            label="Manage Settings"
-            sublabel="Brands, specs, notifications"
-            icon={
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
               </svg>
             }
           />

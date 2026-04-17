@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Client-side data layer for the CoA API (supports { data, error } envelope).
  */
 
@@ -329,6 +329,7 @@ export async function listSubmissions(limit = 100): Promise<SubmissionSummary[]>
       parameter_count: Number(
         item.parameter_count != null ? item.parameter_count : item.page_count ?? 0,
       ),
+      status_summary: item.status_summary,
     };
   });
 }

@@ -21,7 +21,7 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div className="flex h-full min-h-screen items-center justify-center bg-[#f0f2f5] text-sm text-slate-500">
+      <div className="flex min-h-dvh items-center justify-center overflow-x-hidden bg-[#f0f2f5] text-sm text-slate-500">
         Loading…
       </div>
     );
@@ -29,19 +29,19 @@ export default function HomePage() {
 
   if (!user) {
     return (
-      <div className="flex h-full min-h-screen items-center justify-center bg-[#f0f2f5] text-sm text-slate-500">
+      <div className="flex min-h-dvh items-center justify-center overflow-x-hidden bg-[#f0f2f5] text-sm text-slate-500">
         Redirecting to sign in…
       </div>
     );
   }
 
   return (
-    <div className="flex h-full bg-[#f0f2f5]">
+    <div className="flex h-full min-h-dvh min-h-0 w-full max-w-full overflow-x-hidden bg-[#f0f2f5]">
       <Sidebar activePage={activePage} onNavigate={setActivePage} onLogout={signOut} user={user} />
-      <div className="flex flex-1 flex-col min-w-0 h-full">
+      <div className="flex h-full min-h-dvh min-h-0 w-full min-w-0 flex-1 flex-col">
         <TopBar activePage={activePage} />
-        <main className="flex-1 overflow-y-auto p-5 lg:p-7">
-          {activePage === "dashboard" && <DashboardPage />}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-5 lg:p-6 xl:p-7">
+          {activePage === "dashboard" && <DashboardPage onNavigate={setActivePage} />}
           {activePage === "new-coa" && <NewCoaPage />}
           {activePage === "recent-coa" && <RecentCoaPage />}
           {activePage === "customize" && <CustomizePage />}

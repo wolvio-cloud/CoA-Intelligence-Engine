@@ -1,7 +1,50 @@
 "use client";
 
-import type { SubmissionSummary } from "@/lib/types";
+import type { SubmissionSummary, StatusSummary } from "@/lib/types";
 import { StatusBadge } from "@/components/results/StatusBadge";
+
+function StatusBreakdown({ summary }: { summary?: StatusSummary }) {
+  if (!summary) return null;
+  const parts = [];
+  if (summary.PASS) parts.push(
+    <div key="pass" className="flex items-center gap-1 text-emerald-600 bg-emerald-50/80 border border-emerald-200/60 px-1.5 py-[2px] rounded uppercase font-bold tracking-wider">
+      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+      <span>{summary.PASS}</span>
+    </div>
+  );
+  if (summary.WARNING) parts.push(
+    <div key="warn" className="flex items-center gap-1 text-amber-600 bg-amber-50/80 border border-amber-200/60 px-1.5 py-[2px] rounded uppercase font-bold tracking-wider">
+      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span>{summary.WARNING}</span>
+    </div>
+  );
+  if (summary.FAIL) parts.push(
+    <div key="fail" className="flex items-center gap-1 text-rose-600 bg-rose-50/80 border border-rose-200/60 px-1.5 py-[2px] rounded uppercase font-bold tracking-wider">
+      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      <span>{summary.FAIL}</span>
+    </div>
+  );
+  if (summary.ERROR) parts.push(
+    <div key="err" className="flex items-center gap-1 text-red-700 bg-red-50/80 border border-red-200/60 px-1.5 py-[2px] rounded uppercase font-bold tracking-wider">
+      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>{summary.ERROR}</span>
+    </div>
+  );
+  if (summary.REVIEW) parts.push(
+    <div key="rev" className="flex items-center gap-1 text-sky-600 bg-sky-50/80 border border-sky-200/60 px-1.5 py-[2px] rounded uppercase font-bold tracking-wider">
+      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <span>{summary.REVIEW}</span>
+    </div>
+  );
+
+  if (parts.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 mt-1.5 text-[9px]">
+      {parts}
+    </div>
+  );
+}
 
 function timeAgo(dateStr: string): string {
   const diffMs = Date.now() - new Date(dateStr).getTime();
@@ -73,15 +116,19 @@ export function SubmissionsTable({
             <th scope="col" className={th}>
               Document
             </th>
-            <th scope="col" className={`${th} hidden sm:table-cell`}>
-              Stage
+            {!compact && (
+              <th scope="col" className={`${th} hidden sm:table-cell`}>
+                Stage
+              </th>
+            )}
+            <th scope="col" className={`${th} sm:table-cell`}>
+              Results
             </th>
-            <th scope="col" className={`${th} text-right tabular-nums`}>
-              Params
-            </th>
-            <th scope="col" className={th}>
-              Outcome
-            </th>
+            {!compact && (
+              <th scope="col" className={th}>
+                Outcome
+              </th>
+            )}
             <th scope="col" className={`${th} text-right`}>
               Submitted
             </th>
@@ -139,15 +186,23 @@ export function SubmissionsTable({
                   </div>
                 </div>
               </td>
-              <td className={`${td} hidden text-xs font-medium text-slate-600 sm:table-cell`}>
-                {stageLabel(s.stage)}
+              {!compact && (
+                <td className={`${td} hidden text-xs font-medium text-slate-600 sm:table-cell`}>
+                  {stageLabel(s.stage)}
+                </td>
+              )}
+              <td className={`${td}`}>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-medium text-slate-700 tabular-nums">{s.parameter_count > 0 ? s.parameter_count : "—"}</span>
+                  {s.parameter_count > 0 && <span className="text-xs text-slate-400">params</span>}
+                </div>
+                {s.status_summary && s.parameter_count > 0 && <StatusBreakdown summary={s.status_summary} />}
               </td>
-              <td className={`${td} text-right tabular-nums text-slate-700`}>
-                {s.parameter_count > 0 ? s.parameter_count : "—"}
-              </td>
-              <td className={td}>
-                <StatusBadge status={s.overall_status} />
-              </td>
+              {!compact && (
+                <td className={td}>
+                  <StatusBadge status={s.overall_status} />
+                </td>
+              )}
               <td className={`${td} text-right text-xs tabular-nums text-slate-500`}>
                 <span title={new Date(s.created_at).toLocaleString()}>{timeAgo(s.created_at)}</span>
               </td>

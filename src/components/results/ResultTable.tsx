@@ -66,7 +66,7 @@ export function ResultTable({
         </div>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[720px] border-collapse text-left">
+        <table className="w-full min-w-[min(100%,720px)] border-collapse text-left">
           <thead>
             <tr className="border-b border-slate-200 bg-white">
               <th className="whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:px-5">

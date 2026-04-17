@@ -16,6 +16,12 @@ body {
   scroll-behavior: smooth;
 }
 
+html {
+  /* Keep typography stable at 100% zoom (esp. mobile Safari). */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   font-family: var(--font-sans);
   line-height: 1.5;
