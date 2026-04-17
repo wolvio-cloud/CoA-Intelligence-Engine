@@ -52,7 +52,7 @@ export function OverallStatus({
             {productName || "Unknown product"}
           </h2>
 
-          <div className="mt-4 flex flex-wrap items-center gap-2">
+          {/* <div className="mt-4 flex flex-wrap items-center gap-2">
             <span className="inline-flex max-w-full items-center rounded-md border border-slate-200/90 bg-slate-50/90 px-2.5 py-1 text-xs font-medium text-slate-800">
               <span className="truncate" title={filename}>
                 {fileLabel}
@@ -66,9 +66,9 @@ export function OverallStatus({
                 {submissionId.slice(0, 8)}…{submissionId.slice(-4)}
               </code>
             ) : null}
-          </div>
+          </div> */}
 
-          <div className="mt-8 max-w-xl">
+          {/* <div className="mt-8 max-w-xl">
             <div className="flex items-baseline justify-between gap-3">
               <span className="text-xs font-medium text-slate-500">Catalogue match</span>
               <span className="text-sm font-semibold tabular-nums text-navy">{matchPct.toFixed(1)}%</span>
@@ -86,7 +86,7 @@ export function OverallStatus({
               Textual alignment between this CoA and your product catalogue. Lower scores still list every test for
               qualified-person review.
             </p>
-          </div>
+          </div> */}
 
           {statusSummary ? (
             <div className="mt-8 border-t border-slate-100 pt-6">
@@ -108,6 +108,9 @@ export function OverallStatus({
                   );
                 })}
               </div>
+               <p className="text-xs leading-relaxed text-slate-500 mt-3">
+            Open the parameters grid to inspect each test against specification limits and captured notes.
+          </p>
             </div>
           ) : null}
         </div>
@@ -120,9 +123,7 @@ export function OverallStatus({
               <StatusBadge status={status} />
             </div>
           </div>
-          <p className="text-xs leading-relaxed text-slate-500">
-            Open the parameters grid to inspect each test against specification limits and captured notes.
-          </p>
+         
         </aside>
       </div>
     </div>
