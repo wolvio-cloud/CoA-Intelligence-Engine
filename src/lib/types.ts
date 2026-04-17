@@ -19,6 +19,7 @@ export interface SpecLimit {
 export interface CoaParameter {
   id: string;
   name: string;
+  method?: string | null;
   result_value: string;
   unit: string | null;
   spec_limit: SpecLimit;
@@ -55,6 +56,23 @@ export interface SubmissionSummary {
   overall_status: ValidationStatusKey;
   parameter_count: number;
   status_summary?: StatusSummary;
+  header?: {
+    product_name?: string | null;
+    product_code?: string | null;
+    product_grade?: string | null;
+    supplier_name?: string | null;
+    supplier_address?: string | null;
+    batch_number?: string | null;
+    pharmacopoeia?: string | null;
+    coa_number?: string | null;
+    coa_date?: string | null;
+    manufacture_date?: string | null;
+    expiry_date?: string | null;
+    retest_date?: string | null;
+    quantity?: string | null;
+    approval_status?: string | null;
+    [key: string]: any;
+  };
 }
 
 export const MOCK_JOB_RESULT: CoaJobResult = {
@@ -233,6 +251,13 @@ export const MOCK_RECENT_SUBMISSIONS: SubmissionSummary[] = [
     overall_status: "WARNING",
     parameter_count: 15,
     status_summary: { PASS: 10, WARNING: 2, FAIL: 1, REVIEW: 2, ERROR: 0 },
+    header: {
+      product_name: "Paracetamol IP",
+      supplier_name: "Karnavati Laboratories Pvt. Ltd.",
+      batch_number: "KAR-2024-1182",
+      coa_number: "KL/QC/COA/2024/1182",
+      coa_date: "20-Feb-2024"
+    }
   },
   {
     id: "sub-8841",
@@ -242,6 +267,12 @@ export const MOCK_RECENT_SUBMISSIONS: SubmissionSummary[] = [
     overall_status: "PASS",
     parameter_count: 12,
     status_summary: { PASS: 12, WARNING: 0, FAIL: 0, REVIEW: 0, ERROR: 0 },
+    header: {
+      product_name: "Ibuprofen USP",
+      supplier_name: "RMG Pharmaceuticals",
+      batch_number: "IB-USP-4022",
+      coa_number: "RMG/QC/COA/2024/5012"
+    }
   },
   {
     id: "sub-8830",

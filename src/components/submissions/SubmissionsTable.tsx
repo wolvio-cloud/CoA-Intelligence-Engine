@@ -171,7 +171,7 @@ export function SubmissionsTable({
                   >
                     <FileIcon className={compact ? "scale-90" : undefined} />
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex flex-col justify-center">
                     <p
                       className={`truncate font-medium text-navy ${
                         compact ? "max-w-[180px] text-[13px]" : "max-w-[min(100%,20rem)]"
@@ -180,8 +180,8 @@ export function SubmissionsTable({
                     >
                       {s.filename}
                     </p>
-                    <p className="mt-0.5 font-mono text-[10px] text-slate-400 sm:text-[11px]" title={s.id}>
-                      {s.id.slice(0, 8)}…{s.id.slice(-4)}
+                    <p className="mt-0.5 font-mono text-[10px] text-slate-400 sm:text-[11px]" title={s.header?.coa_number || s.id}>
+                      {s.header?.coa_number || `${s.id.slice(0, 8)}…${s.id.slice(-4)}`}
                     </p>
                   </div>
                 </div>

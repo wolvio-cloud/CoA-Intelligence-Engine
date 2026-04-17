@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 import { statusFilterChipClasses, type ValidationStatusKey } from "@/config/brand";
@@ -73,19 +73,13 @@ export function ResultTable({
                 Test
               </th>
               <th className="whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:px-5">
+                Method
+              </th>
+              <th className="whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:px-5">
                 Result
               </th>
               <th className="whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:px-5">
-                Unit
-              </th>
-              <th className="hidden whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:px-5 lg:table-cell">
-                Specification
-              </th>
-              <th className="whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:px-5">
                 Status
-              </th>
-              <th className="whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:px-5">
-                Confidence
               </th>
             </tr>
           </thead>

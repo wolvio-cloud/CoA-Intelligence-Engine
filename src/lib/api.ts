@@ -252,6 +252,7 @@ export async function fetchResult(jobId: string): Promise<CoaJobResult> {
     ? data.parameters.map((p: any, index: number) => ({
       id: p.id ?? `param-${index + 1}`,
       name: p.parameter_name ?? p.name ?? `Parameter ${index + 1}`,
+      method: p.method_reference ?? p.method ?? null,
       result_value: p.result_value ?? "",
       unit: p.result_unit ?? p.unit ?? null,
       spec_limit: parseSpecLimit(
@@ -330,6 +331,7 @@ export async function listSubmissions(limit = 100): Promise<SubmissionSummary[]>
         item.parameter_count != null ? item.parameter_count : item.page_count ?? 0,
       ),
       status_summary: item.status_summary,
+      header: item.header,
     };
   });
 }

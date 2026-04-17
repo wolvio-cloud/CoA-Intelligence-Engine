@@ -78,6 +78,7 @@ export function ParameterDetail({
         </div>
 
         <dl className="mt-5 rounded-xl border border-slate-100 bg-white px-4 sm:px-5">
+          <Row label="Method">{param.method ?? "—"}</Row>
           <Row label="Specification">{specDisplay}</Row>
           {(param.spec_limit.min_value != null || param.spec_limit.max_value != null) && (
             <Row label="Limits">

@@ -61,11 +61,24 @@ function DetailView({
             Back to list
           </button>
           <div className="hidden h-9 w-px shrink-0 bg-slate-200 sm:block" aria-hidden />
-          <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Submission review</p>
-            <p className="truncate text-sm font-semibold text-navy sm:text-base" title={data?.filename ?? submission.filename}>
-              {loading ? "Loading…" : data?.filename ?? submission.filename}
-            </p>
+          <div className="min-w-0 flex flex-col justify-center">
+            {submission.header?.product_name || submission.header?.supplier_name ? (
+              <>
+                <p className="truncate text-sm font-semibold text-navy sm:text-base" title={submission.header.product_name ?? undefined}>
+                  {submission.header.product_name || "Product Unknown"}
+                </p>
+                <p className="mt-0.5 truncate text-[11px] font-medium text-slate-500" title={submission.header.supplier_name ?? undefined}>
+                  {submission.header.supplier_name || "Supplier Unknown"}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Submission review</p>
+                <p className="truncate text-sm font-semibold text-navy sm:text-base" title={data?.filename ?? submission.filename}>
+                  {loading ? "Loading…" : data?.filename ?? submission.filename}
+                </p>
+              </>
+            )}
           </div>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
