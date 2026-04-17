@@ -8,7 +8,7 @@ import { ParameterDetail } from "@/components/results/ParameterDetail";
 import { ExportButtons } from "@/components/export/ExportButtons";
 import { useCoaResult } from "@/hooks/useCoaResult";
 import { useAuth } from "@/context/AuthContext";
-import { listSubmissions } from "@/lib/api";
+import { listSubmissions, deleteSubmission } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import type { CoaParameter, SubmissionSummary } from "@/lib/types";
 
@@ -173,6 +173,20 @@ export function RecentCoaPage({
     router.push("/recent-coa");
   };
 
+  const handleDelete = async (s: SubmissionSummary) => {
+    if (!window.confirm(`Are you sure you want to delete this submission? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await deleteSubmission(s.id);
+      setSubmissions((prev) => prev.filter((item) => item.id !== s.id));
+    } catch (err) {
+      console.error("Delete failed:", err);
+      alert("Failed to delete submission. Please try again.");
+    }
+  };
+
   const filtered = submissions.filter((s) =>
     s.filename.toLowerCase().includes(search.toLowerCase()),
   );
@@ -232,6 +246,7 @@ export function RecentCoaPage({
             <SubmissionsTable
               submissions={filtered}
               onRowClick={handleSelect}
+              onDelete={handleDelete}
               variant="default"
             />
           )}

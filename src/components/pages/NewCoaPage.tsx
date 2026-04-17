@@ -83,9 +83,13 @@ export function NewCoaPage() {
   useEffect(() => {
     if (phase !== "processing" || !status.isComplete || status.hasFailed) return;
 
-    const id = window.setTimeout(() => setPhase("results"), 900);
+    const id = window.setTimeout(async () => {
+      // Force a fresh fetch to ensure metadata grid is populated
+      await queryClient.refetchQueries({ queryKey: ["coa-result", coaUpload.jobId] });
+      setPhase("results");
+    }, 900);
     return () => window.clearTimeout(id);
-  }, [phase, status.isComplete, status.hasFailed]);
+  }, [phase, status.isComplete, status.hasFailed, coaUpload.jobId, queryClient]);
 
   useEffect(() => {
     if (!data?.parameters?.length) return;
@@ -230,11 +234,24 @@ export function NewCoaPage() {
                     New submission
                   </button>
                   <div className="hidden h-9 w-px shrink-0 bg-slate-200 sm:block" aria-hidden />
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Results</p>
-                    <p className="truncate text-sm font-semibold text-navy sm:text-base" title={data.filename}>
-                      {data.filename}
-                    </p>
+                  <div className="min-w-0 flex flex-col justify-center">
+                    {data.header?.product_name || data.header?.supplier_name ? (
+                      <>
+                        <p className="truncate text-sm font-semibold text-navy sm:text-base" title={data.header.product_name ?? undefined}>
+                          {data.header.product_name || "Product Unknown"}
+                        </p>
+                        <p className="mt-0.5 truncate text-[11px] font-medium text-slate-500" title={data.header.supplier_name ?? undefined}>
+                          {data.header.supplier_name || "Supplier Unknown"}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Results</p>
+                        <p className="truncate text-sm font-semibold text-navy sm:text-base" title={data.filename}>
+                          {data.filename}
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
                 <ExportButtons jobId={data.id} compact />
@@ -247,6 +264,7 @@ export function NewCoaPage() {
                 submissionId={data.id}
                 matchScore={data.product_match.match_score}
                 statusSummary={data.status_summary}
+                header={data.header}
               />
 
               <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_min(100%,400px)] xl:items-start xl:gap-8">

@@ -95,10 +95,12 @@ function FileIcon({ className }: { className?: string }) {
 export function SubmissionsTable({
   submissions,
   onRowClick,
+  onDelete,
   variant = "default",
 }: {
   submissions: SubmissionSummary[];
   onRowClick?: (s: SubmissionSummary) => void;
+  onDelete?: (s: SubmissionSummary) => void;
   variant?: "default" | "compact";
 }) {
   const compact = variant === "compact";
@@ -132,7 +134,8 @@ export function SubmissionsTable({
             <th scope="col" className={`${th} text-right`}>
               Submitted
             </th>
-            {rowInteractive ? (
+            {onDelete && <th scope="col" className={`${th} w-12 text-center`}>Actions</th>}
+            {rowInteractive && !onDelete ? (
               <th scope="col" className={`${th} w-12 pr-4 text-center sm:pr-5`}>
                 <span className="sr-only">Open</span>
               </th>
@@ -206,7 +209,23 @@ export function SubmissionsTable({
               <td className={`${td} text-right text-xs tabular-nums text-slate-500`}>
                 <span title={new Date(s.created_at).toLocaleString()}>{timeAgo(s.created_at)}</span>
               </td>
-              {rowInteractive ? (
+              {onDelete && (
+                <td className={`${td} text-center`}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(s);
+                    }}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                    title="Delete submission"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/>
+                    </svg>
+                  </button>
+                </td>
+              )}
+              {rowInteractive && !onDelete ? (
                 <td className={`${td} w-12 pr-4 text-center text-slate-300 group-hover:text-blue-500 sm:pr-5`}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
                     <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />

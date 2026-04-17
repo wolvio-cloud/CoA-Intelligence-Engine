@@ -341,6 +341,13 @@ export function exportUrl(jobId: string, format: "csv" | "pdf"): string {
   return `${API_BASE}/export/${encodeURIComponent(jobId)}?format=${format}`;
 }
 
+export async function deleteSubmission(id: string): Promise<void> {
+  await fetchJson<any>(`${API_BASE}/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+
 function triggerBrowserDownload(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

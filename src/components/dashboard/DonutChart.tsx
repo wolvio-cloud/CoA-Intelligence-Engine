@@ -21,13 +21,13 @@ export function DonutChart({ segments, title, subtitle, centerLabel, centerValue
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
-  let cumulativePercent = 0;
+  let cumulativeDist = 0;
 
   const arcs = segments.map((seg) => {
     const pct = total > 0 ? seg.value / total : 0;
-    const offset = circumference * (1 - cumulativePercent);
     const dash = circumference * pct;
-    cumulativePercent += pct;
+    const offset = -cumulativeDist;
+    cumulativeDist += dash;
     return { ...seg, offset, dash, pct };
   });
 
@@ -62,7 +62,7 @@ export function DonutChart({ segments, title, subtitle, centerLabel, centerValue
                 fill="none"
                 stroke={arc.color}
                 strokeWidth={strokeWidth}
-                strokeDasharray={`${Math.max(arc.dash - 2, 0)} ${circumference}`}
+                strokeDasharray={`${arc.dash} ${circumference}`}
                 strokeDashoffset={arc.offset}
                 strokeLinecap="round"
                 filter="url(#donut-shadow)"
