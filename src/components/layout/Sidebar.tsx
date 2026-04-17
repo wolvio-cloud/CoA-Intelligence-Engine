@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { brand } from "@/config/brand";
+import Link from "next/link";
 
 export type Page = "dashboard" | "new-coa" | "recent-coa" | "customize";
 
@@ -13,7 +14,6 @@ interface AppUser {
 
 interface SidebarProps {
   activePage: Page;
-  onNavigate: (page: Page) => void;
   onLogout: () => Promise<void>;
   user: AppUser;
 }
@@ -90,7 +90,7 @@ function getInitials(email: string): string {
   return email.slice(0, 2).toUpperCase();
 }
 
-export function Sidebar({ activePage, onNavigate, onLogout, user }: SidebarProps) {
+export function Sidebar({ activePage, onLogout, user }: SidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -151,13 +151,10 @@ export function Sidebar({ activePage, onNavigate, onLogout, user }: SidebarProps
           {navGroups.map((group) => (
              <nav className="flex flex-col gap-0.5">
                 {group.items.map((item) => (
-                  <button
+                  <Link
                     key={item.id}
-                    type="button"
-                    onClick={() => {
-                      onNavigate(item.id);
-                      setMobileOpen(false);
-                    }}
+                    href={`/${item.id}`}
+                    onClick={() => setMobileOpen(false)}
                     className={`my-1 flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2.5 text-sm font-medium transition-all duration-150 ${
                       activePage === item.id
                         ? "bg-blue-600 text-white shadow-sm"
@@ -168,7 +165,7 @@ export function Sidebar({ activePage, onNavigate, onLogout, user }: SidebarProps
                       {item.icon}
                     </span>
                     {item.label}
-                  </button>
+                  </Link>
                 ))}
               </nav>
           ))}

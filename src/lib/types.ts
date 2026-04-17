@@ -46,6 +46,23 @@ export interface CoaJobResult {
   parameters: CoaParameter[];
   overall_status: ValidationStatusKey;
   status_summary?: StatusSummary;
+  header?: {
+    product_name?: string | null;
+    product_code?: string | null;
+    product_grade?: string | null;
+    supplier_name?: string | null;
+    supplier_address?: string | null;
+    batch_number?: string | null;
+    pharmacopoeia?: string | null;
+    coa_number?: string | null;
+    coa_date?: string | null;
+    manufacture_date?: string | null;
+    expiry_date?: string | null;
+    retest_date?: string | null;
+    quantity?: string | null;
+    approval_status?: string | null;
+    [key: string]: any;
+  };
 }
 
 export interface SubmissionSummary {

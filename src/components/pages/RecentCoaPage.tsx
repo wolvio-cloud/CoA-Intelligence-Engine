@@ -9,6 +9,7 @@ import { ExportButtons } from "@/components/export/ExportButtons";
 import { useCoaResult } from "@/hooks/useCoaResult";
 import { useAuth } from "@/context/AuthContext";
 import { listSubmissions } from "@/lib/api";
+import { useRouter } from "next/navigation";
 import type { CoaParameter, SubmissionSummary } from "@/lib/types";
 
 type View = "list" | "detail";
@@ -104,6 +105,7 @@ function DetailView({
             submissionId={data.id}
             matchScore={data.product_match.match_score}
             statusSummary={data.status_summary}
+            header={data.header}
           />
 
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_min(100%,400px)] xl:items-start xl:gap-8">
@@ -122,13 +124,31 @@ function DetailView({
   );
 }
 
-export function RecentCoaPage() {
+export function RecentCoaPage({
+  initialId,
+  initialView = "list",
+}: {
+  initialId?: string;
+  initialView?: View;
+}) {
   const { user } = useAuth();
   const [submissions, setSubmissions] = useState<SubmissionSummary[]>([]);
   const [loadingList, setLoadingList] = useState(true);
   const [selected, setSelected] = useState<SubmissionSummary | null>(null);
-  const [view, setView] = useState<View>("list");
+  const [view, setView] = useState<View>(initialView);
   const [search, setSearch] = useState("");
+
+  const router = useRouter();
+
+  useEffect(() => {
+    if (initialId && submissions.length > 0) {
+      const match = submissions.find((s) => s.id === initialId);
+      if (match) {
+        setSelected(match);
+        setView("detail");
+      }
+    }
+  }, [initialId, submissions]);
 
   useEffect(() => {
     if (!user?.id) {
@@ -146,13 +166,11 @@ export function RecentCoaPage() {
   }, [user?.id]);
 
   const handleSelect = (s: SubmissionSummary) => {
-    setSelected(s);
-    setView("detail");
+    router.push(`/recent-coa/${s.id}`);
   };
 
   const handleBack = () => {
-    setSelected(null);
-    setView("list");
+    router.push("/recent-coa");
   };
 
   const filtered = submissions.filter((s) =>

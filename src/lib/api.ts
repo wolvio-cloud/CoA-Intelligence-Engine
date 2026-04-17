@@ -295,6 +295,7 @@ export async function fetchResult(jobId: string): Promise<CoaJobResult> {
     parameters,
     overall_status: overallStatus,
     status_summary,
+    header: data.header,
   };
 }
 

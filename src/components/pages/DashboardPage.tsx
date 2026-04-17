@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -18,15 +19,15 @@ function getGreeting(): string {
   return "Good evening";
 }
 
-function QuickAction({ icon, label, sublabel, accent, onClick }: {
+function QuickAction({ icon, label, sublabel, accent, href }: {
   icon: React.ReactNode;
   label: string;
   sublabel: string;
   accent: string;
-  onClick?: () => void;
+  href: string;
 }) {
   return (
-    <div onClick={onClick} className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200/70 bg-white px-4 py-3 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow-md">
+    <Link href={href} className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200/70 bg-white px-4 py-3 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow-md">
       <div
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
         style={{ backgroundColor: `${accent}18`, color: accent }}
@@ -37,7 +38,7 @@ function QuickAction({ icon, label, sublabel, accent, onClick }: {
         <p className="text-sm font-semibold leading-tight text-slate-900">{label}</p>
         <p className="mt-0.5 text-xs text-slate-400">{sublabel}</p>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -228,7 +229,7 @@ export function DashboardPage({ onNavigate }: { onNavigate?: (page: any) => void
             accent="#2563eb"
             label="Submit New CoA"
             sublabel="Upload and analyse a document"
-            onClick={() => onNavigate?.("new-coa")}
+            href="/new-coa"
             icon={
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -241,7 +242,7 @@ export function DashboardPage({ onNavigate }: { onNavigate?: (page: any) => void
             accent="#10b981"
             label="View Recent CoAs"
             sublabel="Browse all past submissions"
-            onClick={() => onNavigate?.("recent-coa")}
+            href="/recent-coa"
             icon={
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
