@@ -227,19 +227,21 @@ export async function fetchStatus(jobId: string): Promise<{
 export async function fetchResult(jobId: string): Promise<CoaJobResult> {
   const data = await fetchJson<any>(`${API_BASE}/result/${encodeURIComponent(jobId)}`);
 
-  const overallStatus = isValidStatus(data.status)
-    ? data.status
-    : data.summary
-      ? data.summary.ERROR > 0
-        ? "ERROR"
-        : data.summary.FAIL > 0
-          ? "FAIL"
-          : data.summary.REVIEW > 0
-            ? "REVIEW"
-            : data.summary.WARNING > 0
-              ? "WARNING"
-              : "PASS"
-      : "REVIEW";
+  const overallStatus = isValidStatus(data.overall_status)
+    ? data.overall_status
+    : isValidStatus(data.status)
+      ? data.status
+      : data.summary
+        ? data.summary.ERROR > 0
+          ? "ERROR"
+          : data.summary.FAIL > 0
+            ? "FAIL"
+            : data.summary.REVIEW > 0
+              ? "REVIEW"
+              : data.summary.WARNING > 0
+                ? "WARNING"
+                : "PASS"
+        : "REVIEW";
 
   const rawConf = (p: any) => {
     const c = Number(p.confidence ?? 0);
@@ -346,7 +348,7 @@ export async function getCoaSubmissionSourceUrl(
   );
 }
 
-export function exportUrl(jobId: string, format: "json" | "csv"): string {
+export function exportUrl(jobId: string, format: "csv" | "pdf"): string {
   return `${API_BASE}/export/${encodeURIComponent(jobId)}?format=${format}`;
 }
 
@@ -362,11 +364,15 @@ function triggerBrowserDownload(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-export async function downloadExport(jobId: string, format: "json" | "csv"): Promise<void> {
+export async function downloadExport(jobId: string, format: "csv" | "pdf"): Promise<void> {
   const url = exportUrl(jobId, format);
+  const acceptMap: Record<typeof format, string> = {
+    csv: "text/csv,*/*",
+    pdf: "application/pdf,*/*",
+  };
   const response = await fetch(url, {
     headers: {
-      Accept: format === "csv" ? "text/csv,*/*" : "application/json",
+      Accept: acceptMap[format],
       ...authHeaders(),
     },
   });
@@ -381,19 +387,12 @@ export async function downloadExport(jobId: string, format: "json" | "csv"): Pro
     throw new Error(await readHttpError(response));
   }
 
-  if (format === "csv") {
-    const blob = await response.blob();
-    const cd = response.headers.get("Content-Disposition");
-    const m = cd?.match(/filename=([^;]+)/i);
-    const name = m?.[1]?.replace(/"/g, "").trim() || `${jobId}.csv`;
-    triggerBrowserDownload(blob, name);
-    return;
-  }
-
-  const j = await response.json();
-  const data = unwrapEnvelope<unknown>(j);
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8" });
-  triggerBrowserDownload(blob, `${jobId}.json`);
+  const blob = await response.blob();
+  const cd = response.headers.get("Content-Disposition");
+  const m = cd?.match(/filename=([^;]+)/i);
+  const defaultName = format === "pdf" ? `${jobId}.pdf` : `${jobId}.csv`;
+  const name = m?.[1]?.replace(/"/g, "").trim() || defaultName;
+  triggerBrowserDownload(blob, name);
 }
 
 /** Per-user baseline (spec limits + CoA product name for matching). */
@@ -443,7 +442,23 @@ export async function listBaselineDocuments(): Promise<BaselineDocumentRow[]> {
   return fetchJson<BaselineDocumentRow[]>(`${SPECS_BASE}/baseline/documents`);
 }
 
-export async function uploadBaselineDocument(file: File): Promise<{ id: string; original_filename: string }> {
+export type BaselineExtractedParam = {
+  parameter_name: string;
+  specification_limit: string | null;
+  min_text: string | null;
+  max_text: string | null;
+  unit_text: string | null;
+  is_quantitative: boolean;
+};
+
+export type BaselineUploadResult = {
+  id: string;
+  original_filename: string;
+  extracted_count: number;
+  parameters: BaselineExtractedParam[];
+};
+
+export async function uploadBaselineDocument(file: File): Promise<BaselineUploadResult> {
   const formData = new FormData();
   formData.append("file", file);
   const response = await fetch(`${SPECS_BASE}/baseline/documents`, {
@@ -459,7 +474,7 @@ export async function uploadBaselineDocument(file: File): Promise<{ id: string; 
     throw new Error(await readHttpError(response));
   }
   const j = await response.json();
-  return unwrapEnvelope<{ id: string; original_filename: string }>(j);
+  return unwrapEnvelope<BaselineUploadResult>(j);
 }
 
 export async function deleteBaselineDocument(docId: string): Promise<void> {

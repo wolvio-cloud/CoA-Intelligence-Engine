@@ -98,6 +98,16 @@ body {
   }
 }
 
+/* Hide browser-native password reveal buttons (Edge ::-ms-reveal, Chrome) */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 @layer utilities {
   .animate-coa-upload-bar {
     animation: coa-upload-slide 1.35s ease-in-out infinite;

@@ -16,7 +16,7 @@ export function ExportButtons({ jobId, compact }: { jobId: string | null; compac
   const [err, setErr] = useState<string | null>(null);
 
   const handle = useCallback(
-    async (fmt: "json" | "csv") => {
+    async (fmt: "csv" | "pdf") => {
       const id = jobId ?? "session";
       setErr(null);
       setBusy(true);
@@ -36,13 +36,13 @@ export function ExportButtons({ jobId, compact }: { jobId: string | null; compac
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
         <div className="flex flex-wrap items-center gap-2">
         <span className="mr-1 hidden text-[11px] font-medium uppercase tracking-wide text-slate-400 sm:inline">Export</span>
-        {(["JSON", "CSV"] as const).map((label) => {
-          const fmt = label.toLowerCase() as "json" | "csv";
+        {(["CSV", "PDF"] as const).map((label) => {
+          const fmt = label.toLowerCase() as "csv" | "pdf";
           return (
             <button
               key={label}
               type="button"
-              title={`Download ${label} evidence package`}
+              title={`Download ${label}`}
               disabled={busy}
               onClick={() => void handle(fmt)}
               className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-navy shadow-sm transition hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] disabled:opacity-50"
@@ -63,8 +63,8 @@ export function ExportButtons({ jobId, compact }: { jobId: string | null; compac
       <p className="text-xs font-semibold text-navy">Export evidence</p>
       <p className="mt-1 text-xs leading-relaxed text-slate-500">Structured packages for your quality record.</p>
       <div className="mt-4 flex flex-wrap gap-2">
-        {(["JSON", "CSV"] as const).map((label) => {
-          const fmt = label.toLowerCase() as "json" | "csv";
+        {(["CSV", "PDF"] as const).map((label) => {
+          const fmt = label.toLowerCase() as "csv" | "pdf";
           return (
             <button
               key={label}

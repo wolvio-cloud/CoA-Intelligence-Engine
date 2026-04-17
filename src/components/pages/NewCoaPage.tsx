@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DropZone } from "@/components/upload/DropZone";
 import { ProgressBar } from "@/components/upload/ProgressBar";
 import { OverallStatus } from "@/components/results/OverallStatus";
@@ -11,21 +11,85 @@ import { ExportButtons } from "@/components/export/ExportButtons";
 import { useCoaUpload } from "@/hooks/useCoaUpload";
 import { useCoaStatus } from "@/hooks/useCoaStatus";
 import { useCoaResult } from "@/hooks/useCoaResult";
-import type { CoaParameter } from "@/lib/types";
+import type { CoaParameter, PipelineStage } from "@/lib/types";
 import { fetchResult } from "@/lib/api";
 
 type Phase = "upload" | "processing" | "results";
+
+// Ordered pipeline stages as the backend reports them.
+const PIPELINE_STAGES: Exclude<PipelineStage, "idle">[] = [
+  "intake",
+  "extract",
+  "validate",
+  "store",
+  "complete",
+];
+
+/**
+ * Maximum progress % to display while the visual is dwelling on each stage.
+ * Prevents the percentage bar jumping ahead of the step indicator.
+ */
+const STAGE_PROGRESS_CAP = [20, 72, 82, 94, 100];
+
+/** Human-readable label for each stage (mirrors useCoaStatus / ProgressBar copy). */
+const STAGE_LABEL_MAP: Record<Exclude<PipelineStage, "idle">, string> = {
+  intake: "Intake & checksum",
+  extract: "Vision + structured extract",
+  validate: "Spec compare & matching",
+  store: "Persist evidence package",
+  complete: "Ready for QP review",
+};
+
+/**
+ * Minimum milliseconds to show each stage before advancing to the next.
+ * Ensures every stage is visible even when the backend processes faster than
+ * the poll interval.
+ */
+const STAGE_DWELL_MS = 650;
 
 export function NewCoaPage() {
   const queryClient = useQueryClient();
   const [phase, setPhase] = useState<Phase>("upload");
   const [selectedParam, setSelectedParam] = useState<CoaParameter | null>(null);
 
+  /**
+   * Visual stage index — advances one step at a time with a minimum dwell,
+   * always ≤ the real backend stage. Drives what the user sees in ProgressBar.
+   */
+  const [visualStageIdx, setVisualStageIdx] = useState(0);
+
   const coaUpload = useCoaUpload();
   const pipelineActive = phase === "processing" && Boolean(coaUpload.jobId);
   const status = useCoaStatus(coaUpload.jobId ?? null, pipelineActive);
   const { data, loading } = useCoaResult(coaUpload.jobId ?? null, phase === "results");
 
+  // Index in PIPELINE_STAGES that the backend has reached.
+  const realStageIdx = useMemo(() => {
+    const i = PIPELINE_STAGES.indexOf(
+      status.stage as Exclude<PipelineStage, "idle">,
+    );
+    return i >= 0 ? i : 0;
+  }, [status.stage]);
+
+  /**
+   * Advance the visual stage toward the real backend stage, one step at a time,
+   * with a minimum dwell of STAGE_DWELL_MS. Never advances on failure.
+   */
+  useEffect(() => {
+    if (phase !== "processing") return;
+    if (status.hasFailed) return;
+    if (visualStageIdx >= realStageIdx) return;
+
+    const timer = window.setTimeout(() => {
+      setVisualStageIdx((prev) =>
+        Math.min(prev + 1, PIPELINE_STAGES.length - 1),
+      );
+    }, STAGE_DWELL_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [phase, status.hasFailed, visualStageIdx, realStageIdx]);
+
+  // Prefetch results as soon as the backend is done (while visual is still animating).
   useEffect(() => {
     if (phase !== "processing" || !coaUpload.jobId || !status.isComplete) return;
     if (status.hasFailed) return;
@@ -35,12 +99,19 @@ export function NewCoaPage() {
     });
   }, [phase, coaUpload.jobId, status.isComplete, status.hasFailed, queryClient]);
 
+  /**
+   * Transition to results ONLY after:
+   *   1. Backend has completed (status.isComplete)
+   *   2. Visual animation has reached the final "complete" stage
+   * This guarantees the user sees every stage regardless of backend speed.
+   */
   useEffect(() => {
-    if (phase !== "processing" || !status.isComplete) return;
-    if (status.hasFailed) return;
+    if (phase !== "processing" || !status.isComplete || status.hasFailed) return;
+    if (visualStageIdx < PIPELINE_STAGES.length - 1) return;
+
     const id = window.setTimeout(() => setPhase("results"), 900);
     return () => window.clearTimeout(id);
-  }, [phase, status.isComplete, status.hasFailed]);
+  }, [phase, status.isComplete, status.hasFailed, visualStageIdx]);
 
   useEffect(() => {
     if (!data?.parameters?.length) return;
@@ -52,6 +123,7 @@ export function NewCoaPage() {
 
   const handleFile = async (file: File) => {
     setSelectedParam(null);
+    setVisualStageIdx(0);
     setPhase("processing");
     const id = await coaUpload.upload(file);
     if (id) {
@@ -65,7 +137,16 @@ export function NewCoaPage() {
     coaUpload.reset();
     setPhase("upload");
     setSelectedParam(null);
+    setVisualStageIdx(0);
   };
+
+  // Values derived from visual (not real) stage — what ProgressBar actually displays.
+  const visualStage = PIPELINE_STAGES[visualStageIdx];
+  const visualProgress = Math.min(
+    status.progress,
+    STAGE_PROGRESS_CAP[visualStageIdx] ?? 100,
+  );
+  const visualLabel = STAGE_LABEL_MAP[visualStage];
 
   return (
     <div className="space-y-5">
@@ -114,9 +195,9 @@ export function NewCoaPage() {
           </div>
           <div className="p-6 space-y-4">
             <ProgressBar
-              progress={status.progress}
-              stage={status.stage}
-              label={status.stageLabel}
+              progress={visualProgress}
+              stage={visualStage}
+              label={visualLabel}
               stages={status.stages}
               fileName={coaUpload.fileName}
               awaitingSubmission={coaUpload.uploading && !coaUpload.jobId}

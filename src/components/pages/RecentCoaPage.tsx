@@ -173,10 +173,18 @@ export function RecentCoaPage() {
 
   const handleViewUploaded = async (s: SubmissionSummary) => {
     if (!submissionSourceViewable(s.file_path)) return;
+    // Open a blank window synchronously (inside the click event) so browsers
+    // don't treat it as a popup and block it. We set the URL after the await.
+    const win = window.open("", "_blank", "noopener,noreferrer");
     try {
       const { url } = await getCoaSubmissionSourceUrl(s.id);
-      window.open(url, "_blank", "noopener,noreferrer");
+      if (win) {
+        win.location.href = url;
+      } else {
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
     } catch (e) {
+      win?.close();
       console.error(e);
       window.alert(e instanceof Error ? e.message : "Could not open the uploaded file.");
     }
