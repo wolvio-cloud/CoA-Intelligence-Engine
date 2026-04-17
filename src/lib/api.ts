@@ -6,7 +6,7 @@ import type { ValidationStatusKey } from "./types";
 import type { CoaJobResult, PipelineStage, SubmissionSummary, SpecLimit } from "./types";
 import { authHeaders, notifySessionExpired, setStoredToken } from "./authToken";
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/coa").replace(/\/$/, "");
+const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://coa-intelligence-backend-a791f91457e7.herokuapp.com/api/coa").replace(/\/$/, "");
 /** Base URL for `/api/auth/*` (derived from CoA base, e.g. strip trailing `/coa`). */
 export const API_ROOT = API_BASE.replace(/\/coa\/?$/i, "") || API_BASE;
 
