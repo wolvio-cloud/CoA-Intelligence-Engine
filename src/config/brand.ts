@@ -102,9 +102,9 @@ export type BrandConfig = {
 };
 
 export const brand: BrandConfig = {
-  productName: "Supplier CoA Intelligence Engine",
-  tagline: "Structured certificate review for quality and release teams",
-  logoMark: "CoA",
-  logoSrc: null,
-  logoAlt: "Supplier CoA Intelligence",
+  productName: "Axivera Pharmaceuticals",
+  tagline: "Quality · Science · Trust",
+  logoMark: "AXV",
+  logoSrc: "/logo.svg",
+  logoAlt: "Axivera Pharmaceuticals",
 };

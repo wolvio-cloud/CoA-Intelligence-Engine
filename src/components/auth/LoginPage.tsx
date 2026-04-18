@@ -129,8 +129,7 @@ export function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-1 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition enabled:hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/25 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-55"
-          style={{ backgroundColor: "#1a2332" }}
+          className="mt-1 flex w-full items-center justify-center gap-2 rounded-lg bg-[#0f172a] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition enabled:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/25 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-55"
         >
           {loading && (
             <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -143,7 +142,7 @@ export function LoginPage() {
 
       <AuthAlternateAction>
         Don&apos;t have an account?{" "}
-        <Link href="/register" className="font-medium text-slate-800 transition hover:text-blue-700">
+        <Link href="/register" className="font-semibold text-slate-900 underline-offset-4 hover:underline">
           Register
         </Link>
       </AuthAlternateAction>

@@ -13,6 +13,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: brand.productName,
   description: brand.tagline,
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 /** Native browser zoom: pin layout to the device width and avoid iOS font inflation. */
