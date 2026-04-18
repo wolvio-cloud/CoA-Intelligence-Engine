@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import type { SubmissionSummary, StatusSummary } from "@/lib/types";
 import { StatusBadge } from "@/components/results/StatusBadge";
 
@@ -92,16 +93,24 @@ function FileIcon({ className }: { className?: string }) {
   );
 }
 
+export type SubmissionsTableBulkSelect = {
+  selectedIds: ReadonlySet<string>;
+  onToggleOne: (id: string, selected: boolean) => void;
+  onToggleAll: (selectAll: boolean) => void;
+};
+
 export function SubmissionsTable({
   submissions,
   onRowClick,
   onDelete,
   variant = "default",
+  bulkSelect,
 }: {
   submissions: SubmissionSummary[];
   onRowClick?: (s: SubmissionSummary) => void;
   onDelete?: (s: SubmissionSummary) => void;
   variant?: "default" | "compact";
+  bulkSelect?: SubmissionsTableBulkSelect;
 }) {
   const compact = variant === "compact";
   const th = compact
@@ -109,12 +118,38 @@ export function SubmissionsTable({
     : "px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-navy sm:px-5";
   const td = compact ? "px-3 py-2.5 align-middle" : "px-4 py-3.5 align-middle sm:px-5";
   const rowInteractive = Boolean(onRowClick);
+  const showBulk = Boolean(bulkSelect) && !compact;
+
+  const selectAllRef = useRef<HTMLInputElement>(null);
+  const allSelected =
+    showBulk && submissions.length > 0 && submissions.every((s) => bulkSelect!.selectedIds.has(s.id));
+  const someSelected =
+    showBulk && submissions.some((s) => bulkSelect!.selectedIds.has(s.id));
+
+  useEffect(() => {
+    const el = selectAllRef.current;
+    if (!el) return;
+    el.indeterminate = Boolean(someSelected && !allSelected);
+  }, [someSelected, allSelected, showBulk]);
 
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-200/90 bg-white shadow-sm">
       <table className="w-full min-w-[min(100%,720px)] border-collapse text-left text-sm">
         <thead>
           <tr className="border-b border-slate-200 bg-slate-50/95">
+            {showBulk ? (
+              <th scope="col" className={`${th} w-12 pl-4 text-center sm:pl-5`}>
+                <input
+                  ref={selectAllRef}
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={(e) => bulkSelect!.onToggleAll(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  title="Select all visible rows"
+                  aria-label="Select all visible rows"
+                />
+              </th>
+            ) : null}
             <th scope="col" className={th}>
               Document
             </th>
@@ -163,8 +198,23 @@ export function SubmissionsTable({
                 rowInteractive
                   ? "cursor-pointer hover:bg-sky-50/60 focus-visible:bg-sky-50/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-400/40"
                   : "hover:bg-slate-50/50"
-              }`}
+              } ${showBulk && bulkSelect!.selectedIds.has(s.id) ? "bg-blue-50/40" : ""}`}
             >
+              {showBulk ? (
+                <td
+                  className={`${td} w-12 pl-4 text-center sm:pl-5`}
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                >
+                  <input
+                    type="checkbox"
+                    checked={bulkSelect!.selectedIds.has(s.id)}
+                    onChange={(e) => bulkSelect!.onToggleOne(s.id, e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    aria-label={`Select ${s.filename}`}
+                  />
+                </td>
+              ) : null}
               <td className={td}>
                 <div className="flex min-w-0 items-center gap-3">
                   <div
