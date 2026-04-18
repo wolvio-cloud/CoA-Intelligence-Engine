@@ -148,7 +148,7 @@ export function OverallStatus({
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                   <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
-                Confirm Verification (Tier 1)
+                Confirm Verification
               </button>
             )}
 
@@ -157,7 +157,7 @@ export function OverallStatus({
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
-                Tier 1 Verified
+               Analyst Verified
               </div>
             )}
 

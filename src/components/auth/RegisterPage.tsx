@@ -139,8 +139,8 @@ export function RegisterPage() {
               onChange={(e) => setRole(e.target.value)}
               className={`${inputClass} appearance-none pr-10`}
             >
-              <option value="analyst">QC Analyst (Tier 1)</option>
-              <option value="manager">QC Manager (Tier 2)</option>
+              <option value="analyst">QC Analyst</option>
+              <option value="manager">QC Manager</option>
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

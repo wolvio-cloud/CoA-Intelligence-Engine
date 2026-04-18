@@ -289,7 +289,7 @@ export function SubmissionsTable({
                       return (
                         <span className="inline-flex items-center gap-1 font-bold text-slate-400">
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                          <span className="text-[10px] uppercase tracking-wider">Not Started</span>
+                          <span className="text-[10px] uppercase tracking-wider">Not Acknowledged</span>
                         </span>
                       );
                     })()}
