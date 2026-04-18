@@ -6,6 +6,7 @@ import type { ValidationStatusKey } from "./types";
 import type { CoaJobResult, PipelineStage, SubmissionSummary, SpecLimit } from "./types";
 import { authHeaders, notifySessionExpired, setStoredToken } from "./authToken";
 
+// const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/coa").replace(/\/$/, "");
 const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://coa-intelligence-backend-a791f91457e7.herokuapp.com/api/coa").replace(/\/$/, "");
 /** Base URL for `/api/auth/*` (derived from CoA base, e.g. strip trailing `/coa`). */
 export const API_ROOT = API_BASE.replace(/\/coa\/?$/i, "") || API_BASE;
@@ -296,6 +297,13 @@ export async function fetchResult(jobId: string): Promise<CoaJobResult> {
     overall_status: overallStatus,
     status_summary,
     header: data.header,
+    approval_status: data.approval_status ?? "PENDING",
+    analyst_name: data.analyst_name,
+    analyst_acknowledged_at: data.analyst_acknowledged_at,
+    manager_name: data.manager_name,
+    manager_signed_at: data.manager_signed_at,
+    disposition: data.disposition,
+    manager_notes: data.manager_notes,
   };
 }
 
@@ -333,6 +341,13 @@ export async function listSubmissions(limit = 100): Promise<SubmissionSummary[]>
       ),
       status_summary: item.status_summary,
       header: item.header,
+      approval_status: item.approval_status || "PENDING",
+      analyst_name: item.analyst_name,
+      analyst_acknowledged_at: item.analyst_acknowledged_at,
+      manager_name: item.manager_name,
+      manager_signed_at: item.manager_signed_at,
+      disposition: item.disposition,
+      manager_notes: item.manager_notes,
     };
   });
 }
@@ -352,6 +367,19 @@ export function bulkExportUrl(ids: string[], format: "csv" | "pdf"): string {
 export async function deleteSubmission(id: string): Promise<void> {
   await fetchJson<any>(`${API_BASE}/${encodeURIComponent(id)}`, {
     method: "DELETE",
+  });
+}
+
+export async function acknowledgeSubmission(id: string): Promise<void> {
+  await fetchJson<any>(`${API_BASE}/submissions/${encodeURIComponent(id)}/acknowledge`, {
+    method: "POST",
+  });
+}
+
+export async function signOffSubmission(id: string, disposition: string, notes: string): Promise<void> {
+  const url = `${API_BASE}/submissions/${encodeURIComponent(id)}/sign-off?disposition=${encodeURIComponent(disposition)}&notes=${encodeURIComponent(notes)}`;
+  await fetchJson<any>(url, {
+    method: "POST",
   });
 }
 

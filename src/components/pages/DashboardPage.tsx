@@ -74,7 +74,7 @@ export function DashboardPage({ onNavigate }: { onNavigate?: (page: any) => void
     () =>
       [...submissions]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        .slice(0, 8),
+        .slice(0, 3),
     [submissions],
   );
 

@@ -153,18 +153,18 @@ export function SubmissionsTable({
             <th scope="col" className={th}>
               Document
             </th>
-            {!compact && (
-              <th scope="col" className={`${th} hidden sm:table-cell`}>
-                Stage
-              </th>
-            )}
             <th scope="col" className={`${th} sm:table-cell`}>
               Results
             </th>
             {!compact && (
-              <th scope="col" className={th}>
-                Outcome
-              </th>
+              <>
+                <th scope="col" className={th}>
+                  Outcome
+                </th>
+                <th scope="col" className={th}>
+                  Status
+                </th>
+              </>
             )}
             <th scope="col" className={`${th} text-right`}>
               Submitted
@@ -239,11 +239,6 @@ export function SubmissionsTable({
                   </div>
                 </div>
               </td>
-              {!compact && (
-                <td className={`${td} hidden text-xs font-medium text-slate-600 sm:table-cell`}>
-                  {stageLabel(s.stage)}
-                </td>
-              )}
               <td className={`${td}`}>
                 <div className="flex items-center gap-1.5">
                   <span className="font-medium text-slate-700 tabular-nums">{s.parameter_count > 0 ? s.parameter_count : "—"}</span>
@@ -252,9 +247,54 @@ export function SubmissionsTable({
                 {s.status_summary && s.parameter_count > 0 && <StatusBreakdown summary={s.status_summary} />}
               </td>
               {!compact && (
-                <td className={td}>
-                  <StatusBadge status={s.overall_status} />
-                </td>
+                <>
+                  <td className={td}>
+                    <StatusBadge status={s.overall_status} />
+                  </td>
+                  <td className={td}>
+                    {(() => {
+                      const st = (s.approval_status || "").toUpperCase();
+                      if (st === "RELEASED" || st === "RELEASE") {
+                        return (
+                          <span className="inline-flex items-center gap-1 font-bold text-emerald-600">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                            <span className="text-[10px] uppercase tracking-wider">Released</span>
+                          </span>
+                        );
+                      }
+                      if (st === "WAITING_FOR_QC") {
+                        return (
+                          <span className="inline-flex items-center gap-1 font-bold text-blue-500">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                            <span className="text-[10px] uppercase tracking-wider">Pending QC</span>
+                          </span>
+                        );
+                      }
+                      if (st === "HELD" || st === "HOLD") {
+                        return (
+                          <span className="inline-flex items-center gap-1 font-bold text-amber-500">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            <span className="text-[10px] uppercase tracking-wider">Hold</span>
+                          </span>
+                        );
+                      }
+                      if (st === "REJECTED" || st === "REJECT") {
+                        return (
+                          <span className="inline-flex items-center gap-1 font-bold text-red-500">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                            <span className="text-[10px] uppercase tracking-wider">Rejected</span>
+                          </span>
+                        );
+                      }
+                      return (
+                        <span className="inline-flex items-center gap-1 font-bold text-slate-400">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                          <span className="text-[10px] uppercase tracking-wider">Not Acknowledged</span>
+                        </span>
+                      );
+                    })()}
+                  </td>
+                </>
               )}
               <td className={`${td} text-right text-xs tabular-nums text-slate-500`}>
                 <span title={new Date(s.created_at).toLocaleString()}>{timeAgo(s.created_at)}</span>
