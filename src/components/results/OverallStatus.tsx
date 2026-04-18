@@ -45,6 +45,9 @@ export function OverallStatus({
   matchScore,
   statusSummary,
   header,
+  onAcknowledge,
+  isAcknowledged,
+  showAcknowledgeButton,
 }: {
   status: string;
   productName: string;
@@ -53,6 +56,9 @@ export function OverallStatus({
   matchScore: number;
   statusSummary?: StatusSummary;
   header?: any;
+  onAcknowledge?: () => void;
+  isAcknowledged?: boolean;
+  showAcknowledgeButton?: boolean;
 }) {
   const key = isStatusKey(status) ? status : "REVIEW";
   const accent = brandColors.statusStripe[key];
@@ -117,13 +123,13 @@ export function OverallStatus({
 
         <aside className="relative flex flex-col items-center justify-center bg-slate-50/40 px-8 py-10 lg:col-span-4">
           <div className="absolute inset-0 bg-gradient-to-tr from-slate-100/20 to-transparent pointer-events-none" />
-          
+
           <div className="relative w-full text-center">
             <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-400">Lot Disposition</p>
-            
+
             <div className="mt-6 flex flex-col items-center rounded-2xl border border-slate-200/80 bg-white p-8 shadow-[0_4px_12px_rgba(0,0,0,0.03)] transition hover:shadow-lg">
               <StatusBadge status={status} />
-              
+
               <div className="mt-6 text-center">
                 <p className="text-sm font-bold text-navy">{statusTitle}</p>
                 <p className="mt-2 text-[11px] leading-relaxed text-slate-500 max-w-[180px]">
@@ -131,7 +137,30 @@ export function OverallStatus({
                 </p>
               </div>
             </div>
-            
+
+            {showAcknowledgeButton && !isAcknowledged && (
+              <button
+                type="button"
+                onClick={onAcknowledge}
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-xs font-bold text-white shadow-md transition hover:bg-blue-700 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+                Confirm Verification (Tier 1)
+              </button>
+            )}
+
+            {isAcknowledged && (
+              <div className="mt-6 flex items-center justify-center gap-2 rounded-xl bg-emerald-50 px-4 py-2 text-[10px] font-bold text-emerald-600 border border-emerald-100 uppercase tracking-wide">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Tier 1 Verified
+              </div>
+            )}
+
             <p className="mt-6 text-[10px] font-medium text-slate-400 italic">
               * AI-assisted release decision support
             </p>

@@ -8,20 +8,21 @@ export type AuthUser = {
   id: string;
   email: string;
   displayName: string;
+  role: string;
 };
 
 function meToUser(me: MeResponse): AuthUser {
   const display =
     (me.full_name && me.full_name.trim()) ||
     me.email.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-  return { id: me.id, email: me.email, displayName: display };
+  return { id: me.id, email: me.email, displayName: display, role: me.role || "analyst" };
 }
 
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, fullName?: string) => Promise<void>;
+  register: (email: string, password: string, fullName?: string, role?: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -73,8 +74,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(meToUser(me));
   }, []);
 
-  const register = useCallback(async (email: string, password: string, fullName?: string) => {
-    await registerAccount(email, password, fullName);
+  const register = useCallback(async (email: string, password: string, fullName?: string, role?: string) => {
+    await registerAccount(email, password, fullName, role);
     const me = await fetchMe();
     setUser(meToUser(me));
   }, []);

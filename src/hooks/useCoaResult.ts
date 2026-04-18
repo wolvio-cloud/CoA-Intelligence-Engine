@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useQuery } from "@tanstack/react-query";
 import { fetchResult } from "@/lib/api";
@@ -16,5 +16,6 @@ export function useCoaResult(jobId: string | null, shouldLoad: boolean) {
     data: (q.data ?? null) as CoaJobResult | null,
     loading: q.isLoading,
     error: q.error instanceof Error ? q.error.message : null,
+    refetch: q.refetch,
   };
 }

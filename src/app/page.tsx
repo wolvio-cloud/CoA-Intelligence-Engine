@@ -13,7 +13,11 @@ export default function HomePage() {
       if (!user) {
         router.replace("/login");
       } else {
-        router.replace("/dashboard");
+        if (user.role === "manager") {
+          router.replace("/qc-panel");
+        } else {
+          router.replace("/dashboard");
+        }
       }
     }
   }, [loading, user, router]);

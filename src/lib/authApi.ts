@@ -5,6 +5,7 @@ export type MeResponse = {
   id: string;
   email: string;
   full_name: string | null;
+  role: string | null;
 };
 
 async function readDetail(res: Response): Promise<string> {
@@ -35,11 +36,11 @@ export async function loginWithPassword(email: string, password: string): Promis
   return j.access_token;
 }
 
-export async function registerAccount(email: string, password: string, fullName?: string): Promise<string> {
+export async function registerAccount(email: string, password: string, fullName?: string, role?: string): Promise<string> {
   const res = await fetch(`${API_ROOT}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({ email, password, full_name: fullName || null }),
+    body: JSON.stringify({ email, password, full_name: fullName || null, role: role || "analyst" }),
   });
   if (!res.ok) throw new Error(await readDetail(res));
   const j = (await res.json()) as { access_token: string };

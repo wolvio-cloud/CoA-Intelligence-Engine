@@ -63,6 +63,13 @@ export interface CoaJobResult {
     approval_status?: string | null;
     [key: string]: any;
   };
+  approval_status?: string | null;
+  analyst_name?: string | null;
+  analyst_acknowledged_at?: string | null;
+  manager_name?: string | null;
+  manager_signed_at?: string | null;
+  disposition?: string | null;
+  manager_notes?: string | null;
 }
 
 export interface SubmissionSummary {
@@ -90,6 +97,13 @@ export interface SubmissionSummary {
     approval_status?: string | null;
     [key: string]: any;
   };
+  approval_status?: string | null;
+  analyst_name?: string | null;
+  analyst_acknowledged_at?: string | null;
+  manager_name?: string | null;
+  manager_signed_at?: string | null;
+  disposition?: string | null;
+  manager_notes?: string | null;
 }
 
 export const MOCK_JOB_RESULT: CoaJobResult = {

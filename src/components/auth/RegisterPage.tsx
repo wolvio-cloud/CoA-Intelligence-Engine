@@ -17,6 +17,7 @@ export function RegisterPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState("");
+  const [role, setRole] = useState("analyst");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,7 +41,7 @@ export function RegisterPage() {
 
     setLoading(true);
     try {
-      await register(email.trim(), password, fullName.trim() || undefined);
+      await register(email.trim(), password, fullName.trim() || undefined, role);
       router.replace("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -125,6 +126,31 @@ export function RegisterPage() {
               )}
             </button>
           </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500" htmlFor="reg-role">
+            Organization Role
+          </label>
+          <div className="relative">
+            <select
+              id="reg-role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className={`${inputClass} appearance-none pr-10`}
+            >
+              <option value="analyst">QC Analyst (Tier 1)</option>
+              <option value="manager">QC Manager (Tier 2)</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m6 9 6 6 6-6"/>
+              </svg>
+            </div>
+          </div>
+          <p className="text-[10px] text-slate-400 leading-tight">
+            Managers perform final release sign-offs. Analysts verify and acknowledge extraction.
+          </p>
         </div>
 
         {error && (
