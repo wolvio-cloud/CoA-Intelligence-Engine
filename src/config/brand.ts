@@ -20,71 +20,71 @@ export const brandColors = {
    * Chips use StatusBadge Tailwind classes (50/700/200).
    */
   statusStripe: {
-    PASS: "#15803D",
-    WARNING: "#B45309",
-    FAIL: "#B91C1C",
-    REVIEW: "#0E7490",
-    ERROR: "#C2410C",
+    PASS: "#10B981", // Emerald 500
+    WARNING: "#F59E0B", // Amber 500
+    FAIL: "#E11D48", // Rose 600
+    REVIEW: "#6366F1", // Indigo 500
+    ERROR: "#F97316", // Orange 500
   },
 } as const;
 
 export type ValidationStatusKey = keyof typeof brandColors.statusStripe;
 
-/** Status badges — bg 50, text 700, border 200 (Tailwind palette). */
+/** Status badges — Subtle tints with strong text for high professional clarity. */
 export const statusBadgeClasses: Record<
   keyof typeof brandColors.statusStripe,
   { label: string; className: string }
 > = {
   PASS: {
     label: "Pass",
-    className: "border-green-200 bg-green-50 text-green-700",
+    className: "border-emerald-100 bg-emerald-50 text-emerald-700",
   },
   WARNING: {
     label: "Warning",
-    className: "border-amber-200 bg-amber-50 text-amber-700",
+    className: "border-amber-100 bg-amber-50 text-amber-700",
   },
   FAIL: {
     label: "Fail",
-    className: "border-red-200 bg-red-50 text-red-700",
+    className: "border-rose-100 bg-rose-50 text-rose-700",
   },
   REVIEW: {
     label: "Review",
-    className: "border-cyan-200 bg-cyan-50 text-cyan-700",
+    className: "border-indigo-100 bg-indigo-50 text-indigo-700",
   },
   ERROR: {
     label: "Error",
-    className: "border-orange-200 bg-orange-50 text-orange-700",
+    className: "border-orange-100 bg-orange-50 text-orange-700",
   },
 };
 
-/** Table filter pills — same 50/700/200 as badges when idle; active = solid 700 for clear selection. */
+/** Table filter pills — Clean, flat headers with subtle active indicators. */
 export const statusFilterChipClasses: Record<
   ValidationStatusKey | "ALL",
   { inactive: string; active: string }
 > = {
   ALL: {
-    inactive: "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100",
-    active: "border border-brand-blue bg-brand-blue text-white",
+    inactive: "border border-slate-200 bg-white text-slate-500 hover:bg-slate-50",
+    active: "border border-slate-900 bg-slate-900 text-white",
   },
   PASS: {
-    inactive: "border border-green-200 bg-green-50 text-green-700 hover:bg-green-100",
-    active: "border border-green-700 bg-green-700 text-white",
+    inactive: "border border-slate-200 bg-white text-slate-500 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200",
+    active: "border border-emerald-600 bg-emerald-600 text-white",
   },
   WARNING: {
-    inactive: "border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100",
-    active: "border border-amber-700 bg-amber-700 text-white",
+    inactive: "border border-slate-200 bg-white text-slate-500 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200",
+    active: "border border-amber-600 bg-amber-600 text-white",
   },
   FAIL: {
-    inactive: "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
-    active: "border border-red-700 bg-red-700 text-white",
+    inactive: "border border-slate-200 bg-white text-slate-500 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200",
+    active: "border border-rose-600 bg-rose-600 text-white",
   },
   REVIEW: {
-    inactive: "border border-cyan-200 bg-cyan-50 text-cyan-700 hover:bg-cyan-100",
-    active: "border border-cyan-700 bg-cyan-700 text-white",
+    inactive: "border border-slate-200 bg-white text-slate-500 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200",
+    active: "border border-indigo-600 bg-indigo-600 text-white",
   },
   ERROR: {
-    inactive: "border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100",
-    active: "border border-orange-700 bg-orange-700 text-white",
+    inactive: "border border-slate-200 bg-white text-slate-500 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200",
+    active: "border border-orange-600 bg-orange-600 text-white",
   },
 };
 

@@ -39,33 +39,33 @@ function AlertIcon({ type }: { type: "warning" | "error" | "info" }) {
 
 export function AlertsFeed() {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm">
-      <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+    <div className="bg-white rounded-lg border border-slate-200">
+      <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
         <div>
-          <h3 className="text-sm font-semibold text-slate-900">Alerts & Flags</h3>
-          <p className="mt-0.5 text-xs text-slate-400">Issues requiring attention</p>
+          <h3 className="text-sm font-bold text-slate-900 tracking-tight">System Alerts</h3>
+          <p className="mt-0.5 text-xs text-slate-400 font-medium">Critical issues and flags</p>
         </div>
-        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+        <span className="flex h-5 w-5 items-center justify-center rounded bg-red-100 text-[10px] font-bold text-red-700 ring-1 ring-inset ring-red-200">
           {ALERTS.filter((a) => a.type === "error").length}
         </span>
       </div>
-      <div className="p-4 flex flex-col gap-2.5">
+      <div className="divide-y divide-slate-100">
         {ALERTS.map((alert) => {
           const cfg = alertConfig[alert.type];
           return (
             <div
               key={alert.id}
-              className={`rounded-xl border px-3.5 py-3 ${cfg.bg} ${cfg.border}`}
+              className="px-6 py-4 transition-colors hover:bg-slate-50/50"
             >
-              <div className="flex items-start gap-2.5">
+              <div className="flex items-start gap-3">
                 <span className={`mt-0.5 shrink-0 ${cfg.icon}`}>
                   <AlertIcon type={alert.type} />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className={`text-xs font-semibold leading-snug ${cfg.text}`}>{alert.message}</p>
-                  <p className="mt-0.5 text-[11px] text-slate-500 truncate">{alert.product}</p>
+                  <p className="text-[12px] font-bold text-slate-900 leading-tight">{alert.message}</p>
+                  <p className="mt-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">{alert.product}</p>
                 </div>
-                <span className="shrink-0 text-[10px] text-slate-400">{alert.time}</span>
+                <span className="shrink-0 text-[10px] font-bold text-slate-400 mt-0.5">{alert.time}</span>
               </div>
             </div>
           );

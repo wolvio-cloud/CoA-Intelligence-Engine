@@ -8,7 +8,7 @@ import { AuthAlternateAction } from "./AuthAlternateAction";
 import { AuthPageShell } from "./AuthPageShell";
 
 const inputClass =
-  "w-full rounded-lg border border-slate-200/90 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-slate-300 focus:ring-2 focus:ring-slate-900/[0.06]";
+  "w-full rounded border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-slate-900 outline-none transition placeholder:text-slate-300 focus:border-slate-400 focus:ring-1 focus:ring-slate-400/10 disabled:cursor-not-allowed disabled:bg-slate-50";
 
 export function RegisterPage() {
   const { user, loading: authLoading, register } = useAuth();
@@ -62,8 +62,8 @@ export function RegisterPage() {
     <AuthPageShell title="Create account" subtitle="Set up access for your organization in a minute.">
       <form onSubmit={handleSubmit} className="space-y-4 px-6 py-6">
         <div className="space-y-1.5">
-          <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500" htmlFor="reg-fullName">
-            Full name <span className="font-normal normal-case text-slate-400">(optional)</span>
+          <label className="text-[11px] font-semibold text-slate-500" htmlFor="reg-fullName">
+            Full name <span className="font-normal text-slate-400">(optional)</span>
           </label>
           <input
             id="reg-fullName"
@@ -77,7 +77,7 @@ export function RegisterPage() {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500" htmlFor="reg-email">
+          <label className="text-[11px] font-semibold text-slate-500" htmlFor="reg-email">
             Email
           </label>
           <input
@@ -93,7 +93,7 @@ export function RegisterPage() {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500" htmlFor="reg-password">
+          <label className="text-[11px] font-semibold text-slate-500" htmlFor="reg-password">
             Password
           </label>
           <div className="relative">
@@ -129,7 +129,7 @@ export function RegisterPage() {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500" htmlFor="reg-role">
+          <label className="text-[11px] font-semibold text-slate-500" htmlFor="reg-role">
             Organization Role
           </label>
           <div className="relative">
@@ -176,10 +176,10 @@ export function RegisterPage() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-1 flex w-full items-center justify-center gap-2 rounded-lg bg-[#0f172a] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition enabled:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/25 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-55"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded bg-navy py-3.5 text-[11px] font-bold text-white transition hover:bg-slate-800 disabled:opacity-50"
         >
           {loading && (
-            <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+            <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden>
               <path d="M21 12a9 9 0 1 1-6.219-8.56" />
             </svg>
           )}
