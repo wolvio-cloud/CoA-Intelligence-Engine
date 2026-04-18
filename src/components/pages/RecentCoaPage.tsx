@@ -196,7 +196,7 @@ function DetailView({
               header={data.header}
               isAcknowledged={
                 !!data.analyst_acknowledged_at ||
-                (data.approval_status && data.approval_status !== "PENDING")
+                !!(data.approval_status && data.approval_status !== "PENDING")
               }
               showAcknowledgeButton={userRole !== "manager"}
               onAcknowledge={async () => {

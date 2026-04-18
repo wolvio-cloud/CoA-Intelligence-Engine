@@ -104,12 +104,14 @@ export function SubmissionsTable({
   onRowClick,
   onDelete,
   variant = "default",
+  userRole,
   bulkSelect,
 }: {
   submissions: SubmissionSummary[];
   onRowClick?: (s: SubmissionSummary) => void;
   onDelete?: (s: SubmissionSummary) => void;
   variant?: "default" | "compact";
+  userRole?: string;
   bulkSelect?: SubmissionsTableBulkSelect;
 }) {
   const compact = variant === "compact";
