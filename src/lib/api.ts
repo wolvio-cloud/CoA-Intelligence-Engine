@@ -341,6 +341,14 @@ export function exportUrl(jobId: string, format: "csv" | "pdf"): string {
   return `${API_BASE}/export/${encodeURIComponent(jobId)}?format=${format}`;
 }
 
+export function bulkExportUrl(ids: string[], format: "csv" | "pdf"): string {
+  const q = new URLSearchParams({
+    ids: ids.join(","),
+    format,
+  });
+  return `${API_BASE}/export/bulk?${q.toString()}`;
+}
+
 export async function deleteSubmission(id: string): Promise<void> {
   await fetchJson<any>(`${API_BASE}/${encodeURIComponent(id)}`, {
     method: "DELETE",
@@ -387,6 +395,41 @@ export async function downloadExport(jobId: string, format: "csv" | "pdf"): Prom
   const cd = response.headers.get("Content-Disposition");
   const m = cd?.match(/filename=([^;]+)/i);
   const defaultName = format === "pdf" ? `${jobId}.pdf` : `${jobId}.csv`;
+  const name = m?.[1]?.replace(/"/g, "").trim() || defaultName;
+  triggerBrowserDownload(blob, name);
+}
+
+export async function downloadBulkExport(ids: string[], format: "csv" | "pdf"): Promise<void> {
+  if (!ids.length) return;
+  const url = bulkExportUrl(ids, format);
+  const acceptMap: Record<typeof format, string> = {
+    csv: "text/csv,*/*",
+    pdf: "application/pdf,*/*",
+  };
+  const response = await fetch(url, {
+    headers: {
+      Accept: acceptMap[format],
+      ...authHeaders(),
+    },
+  });
+
+  if (response.status === 401) {
+    setStoredToken(null);
+    notifySessionExpired();
+    throw new Error("Session expired; please sign in again.");
+  }
+
+  if (!response.ok) {
+    throw new Error(await readHttpError(response));
+  }
+
+  const blob = await response.blob();
+  const cd = response.headers.get("Content-Disposition");
+  const m = cd?.match(/filename=([^;]+)/i);
+  const dateStr = new Date().toISOString().split("T")[0];
+  const defaultName = format === "pdf" 
+    ? `Bulk_CoA_Reports_${dateStr}.pdf` 
+    : `Bulk_CoA_Reports_${dateStr}.csv`;
   const name = m?.[1]?.replace(/"/g, "").trim() || defaultName;
   triggerBrowserDownload(blob, name);
 }
