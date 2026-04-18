@@ -42,14 +42,14 @@ function inLocalDateRange(iso: string, from: string, to: string): boolean {
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 mb-4">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-50 text-slate-400 mb-4 ring-1 ring-inset ring-slate-200">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10" />
           <polyline points="12 6 12 12 16 14" />
         </svg>
       </div>
-      <p className="text-sm font-semibold text-slate-700">No submissions yet</p>
-      <p className="mt-1 text-xs text-slate-400">Submitted CoAs will appear here once processed</p>
+      <p className="text-sm font-bold text-slate-900 tracking-tight">No submissions found</p>
+      <p className="mt-1 text-xs font-medium text-slate-400 uppercase tracking-wider">Analysis results will appear here</p>
     </div>
   );
 }
@@ -70,32 +70,32 @@ function ManagerDispositionBadge({
 
   if (isReject) {
     return (
-      <div className="inline-flex h-9 items-center gap-2 rounded-lg border border-red-100 bg-red-50 px-3 text-xs font-bold text-red-700">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
+      <div className="inline-flex h-9 items-center gap-2 rounded-md border border-rose-100 bg-rose-50 px-3 text-[10px] font-bold uppercase tracking-wider text-rose-700">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
           <path d="M18 6L6 18M6 6l12 12" />
         </svg>
-        Disposition: REJECT
+        Reject
       </div>
     );
   }
   if (isHold) {
     return (
-      <div className="inline-flex h-9 items-center gap-2 rounded-lg border border-amber-100 bg-amber-50 px-3 text-xs font-bold text-amber-800">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
+      <div className="inline-flex h-9 items-center gap-2 rounded-md border border-amber-100 bg-amber-50 px-3 text-[10px] font-bold uppercase tracking-wider text-amber-700">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
           <rect x="6" y="4" width="4" height="16" rx="1" />
           <rect x="14" y="4" width="4" height="16" rx="1" />
         </svg>
-        Disposition: HOLD
+        Hold
       </div>
     );
   }
   if (isReleased) {
     return (
-      <div className="inline-flex h-9 items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 text-xs font-bold text-emerald-600">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <div className="inline-flex h-9 items-center gap-2 rounded-md border border-emerald-100 bg-emerald-50 px-3 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <polyline points="20 6 9 17 4 12" />
         </svg>
-        Disposition: RELEASED
+        Released
       </div>
     );
   }
@@ -124,34 +124,34 @@ function DetailView({
   }, [data]);
 
   return (
-    <div className="space-y-8">
-      <header className="flex flex-col gap-4 rounded-2xl border border-slate-200/70 bg-white px-4 py-3.5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-5">
-        <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
+    <div className="space-y-6">
+      <header className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex w-fit items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-white sm:text-sm"
+            className="inline-flex w-fit items-center gap-2 rounded border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
               <path d="M19 12H5M12 5l-7 7 7 7" />
             </svg>
-            Back to list
+            Back
           </button>
-          <div className="hidden h-9 w-px shrink-0 bg-slate-200 sm:block" aria-hidden />
+          <div className="hidden h-8 w-px shrink-0 bg-slate-100 sm:block" aria-hidden />
           <div className="min-w-0 flex flex-col justify-center">
             {submission.header?.product_name || submission.header?.supplier_name ? (
               <>
-                <p className="truncate text-sm font-semibold text-navy sm:text-base" title={submission.header.product_name ?? undefined}>
+                <p className="truncate text-base font-bold text-navy tracking-tight sm:text-lg" title={submission.header.product_name ?? undefined}>
                   {submission.header.product_name || "Product Unknown"}
                 </p>
-                <p className="mt-0.5 truncate text-[11px] font-medium text-slate-500" title={submission.header.supplier_name ?? undefined}>
+                <p className="mt-0.5 truncate text-[11px] font-semibold text-slate-500 tracking-wide" title={submission.header.supplier_name ?? undefined}>
                   {submission.header.supplier_name || "Supplier Unknown"}
                 </p>
               </>
             ) : (
               <>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Submission review</p>
-                <p className="truncate text-sm font-semibold text-navy sm:text-base" title={data?.filename ?? submission.filename}>
+                <p className="text-[11px] font-semibold text-slate-400 tracking-wide">Submission Review</p>
+                <p className="truncate text-base font-bold text-navy tracking-tight sm:text-lg" title={data?.filename ?? submission.filename}>
                   {loading ? "Loading…" : data?.filename ?? submission.filename}
                 </p>
               </>
@@ -354,7 +354,7 @@ export function RecentCoaPage({
   }, [filteredIdsKey]);
 
   const inputBase =
-    "h-9 w-full min-w-0 rounded-md border border-slate-200/90 bg-white px-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-1 focus:ring-slate-200/80 disabled:cursor-not-allowed disabled:bg-slate-50/80 disabled:opacity-60";
+    "h-9 w-full min-w-0 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-1 focus:ring-slate-400/10 disabled:cursor-not-allowed disabled:bg-slate-50";
 
   const handleBulkToggleOne = (id: string, selected: boolean) => {
     setSelectedIds((prev) => {
@@ -424,23 +424,22 @@ export function RecentCoaPage({
   }
 
   return (
-    <div className="space-y-5">
-      <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm">
-        <div className="border-b border-slate-100/90 bg-slate-50/40 px-4 py-4 sm:px-5">
+    <div className="space-y-6">
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+        <div className="border-b border-slate-100 px-6 py-5">
           <div className="space-y-4">
             {/* Row 1: title left, date filters right (month + range always one line) */}
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
               <div className="min-w-0">
-                <h2 className="text-sm font-semibold tracking-tight text-slate-900">Recent Submissions</h2>
-                <p className="mt-0.5 text-xs text-slate-500">
+                <h2 className="text-sm font-bold tracking-tight text-slate-900">Recent Submissions</h2>
+                <p className="mt-1 text-xs font-medium text-slate-400 uppercase tracking-wider">
                   {hasActiveFilters
-                    ? `Showing ${filtered.length} of ${submissions.length}`
-                    : `${submissions.length} submission${submissions.length !== 1 ? "s" : ""} on record`}
+                    ? `${filtered.length} results filtered`
+                    : `${submissions.length} total records`}
                 </p>
                 {selectedIds.size > 0 ? (
-                  <p className="mt-2 text-xs font-medium text-blue-700">
-                    {selectedIds.size} selected
-                    {filtered.length > 0 ? ` · ${filtered.length} visible` : ""}
+                  <p className="mt-2 text-xs font-bold text-brand-indigo uppercase tracking-wider">
+                    {selectedIds.size} items selected
                   </p>
                 ) : null}
               </div>
@@ -556,31 +555,32 @@ export function RecentCoaPage({
 
             {/* Row 3: selection actions */}
             {selectedIds.size > 0 ? (
-              <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-100/80 pt-3">
-                <span className="hidden text-[11px] font-semibold uppercase tracking-wide text-slate-400 sm:inline">
-                  Export
+              <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 pt-5">
+                <span className="hidden text-[11px] font-semibold text-slate-400 tracking-wide sm:inline mr-2">
+                  Selection Actions
                 </span>
                 <button
                   type="button"
                   disabled={exportBusy}
                   onClick={() => void handleBulkExport("csv")}
-                  className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-navy shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
+                  className="h-9 rounded border border-slate-200 bg-white px-3 text-[11px] font-bold text-slate-600 transition hover:bg-slate-50"
                 >
-                  CSV
+                  Export CSV
                 </button>
                 <button
                   type="button"
                   disabled={exportBusy}
                   onClick={() => void handleBulkExport("pdf")}
-                  className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-navy shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
+                  className="h-9 rounded border border-slate-200 bg-white px-3 text-[11px] font-bold text-slate-600 transition hover:bg-slate-50"
                 >
-                  PDF
+                  Export PDF
                 </button>
+                <div className="h-4 w-px bg-slate-200 mx-1" />
                 <button
                   type="button"
                   onClick={() => void handleBulkDelete()}
                   disabled={exportBusy}
-                  className="h-9 rounded-lg border border-red-200 bg-red-50 px-3 text-xs font-semibold text-red-700 shadow-sm transition hover:bg-red-100 disabled:opacity-50"
+                  className="h-9 rounded border border-rose-200 bg-rose-50 px-3 text-[11px] font-bold text-rose-700 transition hover:bg-rose-100"
                 >
                   Delete ({selectedIds.size})
                 </button>

@@ -16,34 +16,25 @@ export function ParameterRow({
   return (
     <tr
       onClick={() => onSelect(param)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onSelect(param);
-        }
-      }}
-      tabIndex={0}
       role="button"
-      className={`cursor-pointer transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-400/30 ${
+      className={`group cursor-pointer transition-colors ${
         selected
-          ? "bg-sky-50/90 ring-1 ring-inset ring-blue-200/60"
-          : zebra
-            ? "bg-slate-50/40 hover:bg-sky-50/40"
-            : "hover:bg-slate-50/80"
+          ? "bg-slate-50/80"
+          : "hover:bg-slate-50/40"
       }`}
     >
       <td
-        className={`px-4 py-4 text-sm leading-snug text-navy sm:px-5 lg:text-[12px] ${selected ? "border-l-[3px] border-l-navy" : "border-l-[3px] border-l-transparent"}`}
+        className={`px-6 py-4 text-[13px] font-bold text-slate-900 ${selected ? "text-brand-indigo" : ""}`}
       >
         {param.name}
       </td>
-      <td className="max-w-[12rem] truncate px-4 py-4 text-xs text-brand-slate sm:px-5 lg:text-[11px]" title={param.method ?? ""}>
+      <td className="max-w-[12rem] truncate px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-400" title={param.method ?? ""}>
         {param.method ?? "—"}
       </td>
-      <td className="max-w-[min(100%,28rem)] px-4 py-4 text-sm leading-snug text-navy sm:px-5 lg:text-[12px]">
+      <td className="max-w-[min(100%,28rem)] px-6 py-4 text-[13px] font-bold text-slate-700 tabular-nums">
         {param.result_value}
       </td>
-      <td className="px-4 py-4 sm:px-5">
+      <td className="px-6 py-4">
         <StatusBadge status={param.validation_status} />
       </td>
     </tr>

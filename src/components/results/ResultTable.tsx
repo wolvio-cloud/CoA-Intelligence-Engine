@@ -31,31 +31,29 @@ export function ResultTable({
   }, [parameters, filter]);
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-4px_rgba(15,23,42,0.06)]">
-      <div className="border-b border-slate-100 bg-slate-50/80 px-4 py-4 sm:px-6">
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="border-b border-slate-100 px-6 py-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h3 className="text-sm font-semibold tracking-tight text-navy">Parameters</h3>
-            <p className="mt-1 text-xs text-slate-500">
-              <span className="font-medium tabular-nums text-slate-700">{rows.length}</span>
-              <span className="text-slate-400"> / </span>
-              <span className="tabular-nums">{parameters.length}</span>
-              <span className="text-slate-400"> shown · select a row for detail</span>
+            <h3 className="text-sm font-bold tracking-tight text-slate-900">Analysis Results</h3>
+            <p className="mt-1 text-[11px] font-semibold text-slate-400">
+              <span className="text-slate-900">{rows.length}</span>
+              <span> Records Matched</span>
             </p>
           </div>
           <div
-            className="flex flex-wrap gap-1 rounded-lg border border-slate-200/90 bg-white p-0.5 shadow-sm"
+            className="flex flex-wrap gap-1 rounded bg-slate-50 p-1"
             role="group"
-            aria-label="Filter by status"
+            aria-label="Filter"
           >
             {FILTER_OPTIONS.map(({ value, label }) => (
               <button
                 key={value}
                 type="button"
                 onClick={() => setFilter(value)}
-                className={`rounded-md px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wide transition-all sm:px-3 ${
+                className={`rounded px-3 py-1.5 text-[11px] font-semibold transition-all ${
                   filter === value
-                    ? `${statusFilterChipClasses[value].active} shadow-sm`
+                    ? `${statusFilterChipClasses[value].active}`
                     : statusFilterChipClasses[value].inactive
                 }`}
               >
@@ -68,18 +66,18 @@ export function ResultTable({
       <div className="overflow-x-auto">
         <table className="w-full min-w-[min(100%,720px)] border-collapse text-left">
           <thead>
-            <tr className="border-b border-slate-200 bg-white">
-              <th className="whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:px-5">
-                Test
+            <tr className="border-b border-slate-100 bg-slate-50/30">
+              <th className="whitespace-nowrap px-6 py-4 text-left text-[11px] font-semibold text-slate-400">
+                Test Parameter
               </th>
-              <th className="whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:px-5">
+              <th className="whitespace-nowrap px-6 py-4 text-left text-[11px] font-semibold text-slate-400">
                 Method
               </th>
-              <th className="whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:px-5">
-                Result
+              <th className="whitespace-nowrap px-6 py-4 text-left text-[11px] font-semibold text-slate-400">
+                Observed Result
               </th>
-              <th className="whitespace-nowrap px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 sm:px-5">
-                Status
+              <th className="whitespace-nowrap px-6 py-4 text-left text-[11px] font-semibold text-slate-400">
+                Compliance
               </th>
             </tr>
           </thead>

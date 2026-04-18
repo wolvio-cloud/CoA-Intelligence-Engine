@@ -32,54 +32,52 @@ function TrendIcon({ trend }: { trend: "up" | "down" | "stable" }) {
 
 export function SupplierTable() {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-        <div>
-          <h3 className="text-sm font-semibold text-slate-900">Supplier Performance</h3>
-          <p className="mt-0.5 text-xs text-slate-400">Pass rate by supplier this month</p>
-        </div>
+    <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div className="border-b border-slate-100 px-6 py-4">
+        <h3 className="text-sm font-bold text-slate-900 tracking-tight">Supplier Performance</h3>
+        <p className="mt-0.5 text-xs text-slate-400 font-medium">Monthly pass rate metrics</p>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-50">
-              <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Supplier</th>
-              <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-400">Submissions</th>
-              <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-400">Pass Rate</th>
-              <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Trend</th>
-              <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">Last Active</th>
+            <tr className="bg-slate-50/50">
+              <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400">Supplier</th>
+              <th className="px-6 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-slate-400">Submissions</th>
+              <th className="px-6 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-slate-400">Pass Rate</th>
+              <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400">Trend</th>
+              <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400">Activity</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-50">
+          <tbody className="divide-y divide-slate-100">
             {SUPPLIERS.map((s) => (
-              <tr key={s.name} className="hover:bg-slate-50/60 transition-colors">
-                <td className="px-5 py-3.5">
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-600">
+              <tr key={s.name} className="hover:bg-slate-50/40 transition-colors">
+                <td className="px-6 py-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className="h-7 w-7 rounded bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 ring-1 ring-inset ring-slate-200">
                       {s.name[0]}
                     </div>
-                    <span className="font-medium text-slate-900">{s.name}</span>
+                    <span className="font-semibold text-slate-900">{s.name}</span>
                   </div>
                 </td>
-                <td className="px-5 py-3.5 text-right text-slate-700 font-medium">{s.submissions}</td>
-                <td className="px-5 py-3.5 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <div className="w-20 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                <td className="px-6 py-3.5 text-right text-slate-600 font-bold">{s.submissions}</td>
+                <td className="px-6 py-3.5 text-right">
+                  <div className="flex items-center justify-end gap-3">
+                    <div className="w-24 h-1 rounded-full bg-slate-100 overflow-hidden">
                       <div
-                        className="h-full rounded-full"
+                        className="h-full"
                         style={{
                           width: `${s.passRate}%`,
                           backgroundColor: s.passRate >= 90 ? "#10b981" : s.passRate >= 75 ? "#f59e0b" : "#ef4444",
                         }}
                       />
                     </div>
-                    <span className="text-slate-700 font-semibold w-10 text-right">{s.passRate}%</span>
+                    <span className="text-slate-900 font-bold text-[11px] w-12 text-right">{s.passRate}%</span>
                   </div>
                 </td>
-                <td className="px-5 py-3.5">
+                <td className="px-6 py-3.5">
                   <TrendIcon trend={s.trend} />
                 </td>
-                <td className="px-5 py-3.5 text-slate-400 text-xs">{s.lastSubmission}</td>
+                <td className="px-6 py-3.5 text-slate-500 text-[10px] font-bold uppercase tracking-wide">{s.lastSubmission}</td>
               </tr>
             ))}
           </tbody>
