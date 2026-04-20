@@ -12,11 +12,12 @@ interface DonutChartProps {
   subtitle?: string;
   centerLabel?: string;
   centerValue?: string | number;
+  onSegmentClick?: (label: string) => void;
 }
 
-export function DonutChart({ segments, title, subtitle, centerLabel, centerValue }: DonutChartProps) {
+export function DonutChart({ segments, title, subtitle, centerLabel, centerValue, onSegmentClick }: DonutChartProps) {
   const total = segments.reduce((s, seg) => s + seg.value, 0);
-  const size = 140;
+  const size = 130;
   const strokeWidth = 24;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -37,7 +38,7 @@ export function DonutChart({ segments, title, subtitle, centerLabel, centerValue
         <h3 className="text-sm font-bold text-slate-900 tracking-tight">{title}</h3>
         {subtitle && <p className="mt-1 text-xs text-slate-500">{subtitle}</p>}
       </div>
-      <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-center sm:gap-12 sm:justify-center flex-1">
+      <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-center sm:gap-8 sm:justify-center flex-1">
         <div className="relative shrink-0" style={{ width: size, height: size }}>
           <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: "rotate(-90deg)", overflow: 'visible' }}>
             <circle
@@ -73,11 +74,18 @@ export function DonutChart({ segments, title, subtitle, centerLabel, centerValue
         </div>
         <div className="flex w-full min-w-0 flex-col gap-2.5 sm:w-auto">
           {segments.map((seg) => (
-            <div key={seg.label} className="flex items-center gap-3">
+            <button
+              key={seg.label}
+              type="button"
+              onClick={() => onSegmentClick?.(seg.label)}
+              className={`flex items-center gap-3 rounded px-2 py-1 transition ${
+                onSegmentClick ? "cursor-pointer hover:bg-slate-50" : ""
+              }`}
+            >
               <div className="h-2 w-2 rounded-sm shrink-0" style={{ backgroundColor: seg.color }} />
               <span className="text-xs font-semibold text-slate-500 truncate mr-6 uppercase tracking-wider">{seg.label}</span>
               <span className="ml-auto text-xs font-bold text-slate-900 shrink-0">{seg.value}</span>
-            </div>
+            </button>
           ))}
         </div>
       </div>

@@ -243,9 +243,13 @@ function DetailView({
 export function RecentCoaPage({
   initialId,
   initialView = "list",
+  statusFilter,
+  dispositionFilter,
 }: {
   initialId?: string;
   initialView?: View;
+  statusFilter?: string;
+  dispositionFilter?: string;
 }) {
   const { user } = useAuth();
   const [submissions, setSubmissions] = useState<SubmissionSummary[]>([]);
@@ -260,6 +264,8 @@ export function RecentCoaPage({
   const [dateTo, setDateTo] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [exportBusy, setExportBusy] = useState(false);
+  const [activeStatusFilter, setActiveStatusFilter] = useState(statusFilter || "");
+  const [activeDispositionFilter, setActiveDispositionFilter] = useState(dispositionFilter || "");
 
   const router = useRouter();
 
@@ -329,9 +335,24 @@ export function RecentCoaPage({
       } else if (monthFilter) {
         if (localDateKey(s.created_at).slice(0, 7) !== monthFilter) return false;
       }
+      if (activeStatusFilter) {
+        const statusUpper = activeStatusFilter.toUpperCase();
+        // Support multiple statuses separated by commas or check individually
+        const statuses = statusUpper.split(",").map(st => st.trim());
+        if (!statuses.includes(s.overall_status)) return false;
+      }
+      if (activeDispositionFilter) {
+        if (activeDispositionFilter === "pending") {
+          // Show submissions without a disposition
+          if (s.disposition) return false;
+        } else {
+          const dispositionUpper = activeDispositionFilter.toUpperCase();
+          if (!s.disposition || s.disposition !== dispositionUpper) return false;
+        }
+      }
       return true;
     });
-  }, [submissions, search, monthFilter, dateFrom, dateTo]);
+  }, [submissions, search, monthFilter, dateFrom, dateTo, activeStatusFilter, activeDispositionFilter]);
 
   const filteredIdsKey = useMemo(
     () =>
@@ -416,6 +437,13 @@ export function RecentCoaPage({
     setMonthFilter("");
     setDateFrom("");
     setDateTo("");
+  };
+
+  const clearAllFilters = () => {
+    clearDateFilters();
+    setSearch("");
+    setActiveStatusFilter("");
+    setActiveDispositionFilter("");
   };
 
   if (view === "detail" && selected) {
@@ -592,6 +620,44 @@ export function RecentCoaPage({
                 </button>
               </div>
             ) : null}
+
+            {/* Row 4: active filters display */}
+            {(activeStatusFilter || activeDispositionFilter) && (
+              <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-5">
+                <span className="text-[11px] font-semibold text-slate-400 tracking-wide">Active filters:</span>
+                {activeStatusFilter && (
+                  <div className="inline-flex items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1.5 text-[11px] font-semibold text-blue-700">
+                    Status: {activeStatusFilter}
+                    <button
+                      type="button"
+                      onClick={() => setActiveStatusFilter("")}
+                      className="ml-1 hover:text-blue-900"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+                {activeDispositionFilter && (
+                  <div className="inline-flex items-center gap-2 rounded-md border border-green-100 bg-green-50 px-3 py-1.5 text-[11px] font-semibold text-green-700">
+                    Disposition: {activeDispositionFilter === "pending" ? "Pending" : activeDispositionFilter}
+                    <button
+                      type="button"
+                      onClick={() => setActiveDispositionFilter("")}
+                      className="ml-1 hover:text-green-900"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  className="h-7 rounded-lg border border-transparent px-2 text-xs font-semibold text-slate-500 underline-offset-2 hover:text-slate-700 hover:underline"
+                >
+                  Clear all
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

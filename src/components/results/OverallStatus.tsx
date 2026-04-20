@@ -137,7 +137,7 @@ console.log(showAcknowledgeButton,isAcknowledged,'showAcknowledgeButton')
               <button
                 type="button"
                 onClick={onAcknowledge}
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-navy py-3 text-[11px] font-bold text-white transition hover:bg-slate-800 active:scale-[0.98]"
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-slate-700 py-3 text-[11px] font-bold text-white transition hover:bg-slate-800 active:scale-[0.98]"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 6L9 17l-5-5" />
