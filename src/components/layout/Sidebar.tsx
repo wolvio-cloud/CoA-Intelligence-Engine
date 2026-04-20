@@ -146,7 +146,7 @@ export function Sidebar({ activePage, onLogout, user }: SidebarProps) {
               <span className="text-xs text-slate-300 font-medium tracking-wide mt-1">Pharmaceuticals</span>
             </div>
           </div>
-          <div className="w-full text-center border-t border-slate-800/50 pt-3">
+          <div className="w-full text-center border-t border-slate-800/50">
             <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500 whitespace-nowrap">
               {brand.tagline}
             </p>
@@ -154,7 +154,7 @@ export function Sidebar({ activePage, onLogout, user }: SidebarProps) {
         </div>
 
         <div className="flex-1 overflow-y-auto px-3 py-6 ">
-          <nav className="flex flex-col gap-1">
+          <nav className="flex flex-col gap-3">
             {/* ANALYST ITEMS */}
             {user.role !== "manager" && (
               <>

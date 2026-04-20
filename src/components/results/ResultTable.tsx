@@ -32,7 +32,7 @@ export function ResultTable({
 
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-100 px-6 py-5">
+      <div className="border-b border-slate-200 px-6 py-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h3 className="text-sm font-bold tracking-tight text-slate-900">Analysis Results</h3>

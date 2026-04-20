@@ -14,7 +14,7 @@ export function AuthPageShell({
   subtitle?: string;
 }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 py-12">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-200 px-4 py-12">
       <div className="w-full max-w-[380px]">
         <header className="mb-10">
           <div className="flex flex-col items-center">
@@ -30,7 +30,7 @@ export function AuthPageShell({
                 <span className="text-xs text-slate-400 font-medium tracking-wide mt-1">Pharmaceuticals</span>
               </div>
             </Link>
-            <div className="mt-5 w-full border-t border-slate-200/60 pt-4 text-center">
+            <div className="w-full border-t border-slate-200/60 pt-2 text-center">
               <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-slate-400 whitespace-nowrap">
                 {brand.tagline}
               </p>
@@ -38,8 +38,8 @@ export function AuthPageShell({
           </div>
         </header>
 
-        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-          <div className="border-b border-slate-100 px-6 py-5">
+        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
+          <div className="border-b border-slate-200 px-6 py-5">
             <h2 className="text-sm font-bold text-slate-900">{title}</h2>
             {subtitle ? <p className="mt-2 text-xs font-semibold text-slate-400 leading-relaxed">{subtitle}</p> : null}
           </div>

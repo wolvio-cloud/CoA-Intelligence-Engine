@@ -8,7 +8,7 @@ import { AuthAlternateAction } from "./AuthAlternateAction";
 import { AuthPageShell } from "./AuthPageShell";
 
 const inputClass =
-  "w-full rounded border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-slate-900 outline-none transition placeholder:text-slate-300 focus:border-slate-400 focus:ring-1 focus:ring-slate-400/10 disabled:cursor-not-allowed disabled:bg-slate-50";
+  "w-full rounded border border-slate-400 bg-white px-3 py-2 text-[13px] font-medium text-slate-900 outline-none transition placeholder:text-slate-300 focus:border-slate-400 focus:ring-1 focus:ring-slate-400/10 disabled:cursor-not-allowed disabled:bg-slate-50";
 
 export function LoginPage() {
   const { user, loading: authLoading, signIn } = useAuth();
@@ -53,7 +53,7 @@ export function LoginPage() {
 
   return (
     <AuthPageShell title="Sign in" subtitle="Use your work email and password to continue.">
-      <form onSubmit={handleSubmit} className="space-y-4 px-6 py-6">
+      <form onSubmit={handleSubmit} className="space-y-4 px-6 py-2">
         <div className="space-y-1.5">
           <label className="text-[11px] font-semibold text-slate-500" htmlFor="email">
             Email

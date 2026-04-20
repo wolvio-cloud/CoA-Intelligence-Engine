@@ -194,11 +194,10 @@ function DetailView({
               matchScore={data.product_match.match_score}
               statusSummary={data.status_summary}
               header={data.header}
-              isAcknowledged={
-                !!data.analyst_acknowledged_at ||
-                !!(data.approval_status && data.approval_status !== "PENDING")
+              isAcknowledged={!!data.analyst_acknowledged_at}
+              showAcknowledgeButton={
+                userRole !== "manager" && !data.analyst_acknowledged_at
               }
-              showAcknowledgeButton={userRole !== "manager"}
               onAcknowledge={async () => {
                 if (!window.confirm("Acknowledge that extraction is verified? This moves the item to Tier 2 (Manager Approval).")) return;
                 try {
@@ -223,9 +222,9 @@ function DetailView({
           </div>
 
           {(userRole === "manager" || data.manager_signed_at) && (
-            <DispositionPanel 
-              submissionId={data.id} 
-              onSuccess={async () => { 
+            <DispositionPanel
+              submissionId={data.id}
+              onSuccess={async () => {
                 await refetch();
                 if (userRole === "manager") {
                   router.push("/qc-panel");
@@ -426,7 +425,7 @@ export function RecentCoaPage({
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <div className="border-b border-slate-100 px-6 py-5">
+        <div className="border-b border-slate-200 px-6 py-5">
           <div className="space-y-4">
             {/* Row 1: title left, date filters right (month + range always one line) */}
             <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">

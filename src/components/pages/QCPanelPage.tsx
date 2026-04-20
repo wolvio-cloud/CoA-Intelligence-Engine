@@ -51,8 +51,12 @@ export function QCPanelPage() {
         <div className="flex items-center gap-5">
           <div className="h-10 w-1 bg-navy rounded-full" />
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Regulatory QC Panel</h1>
-            <p className="mt-1 text-xs font-bold uppercase tracking-widest text-slate-400">Final Release Authorization Queue</p>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+              QC Review Panel
+            </h1>
+            <p className="mt-1 text-xs font-bold uppercase tracking-widest text-slate-400">
+              Review and authorize pending submissions
+            </p>
           </div>
           <button
             onClick={fetchSubmissions}
@@ -85,11 +89,13 @@ export function QCPanelPage() {
           ) : submissions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-32 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded bg-slate-50 text-slate-300 mb-6 ring-1 ring-inset ring-slate-100 border border-slate-200">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 6L9 17l-5-5"/>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 12s-4-8-9-8-9 8-9 8 4 8 9 8 9-8 9-8z" />
+                  <line x1="12" y1="9" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
               </div>
-              <h3 className="text-sm font-bold text-slate-900">Queue Finalized</h3>
+              <h3 className="text-sm font-bold text-slate-900">No Items Pending Review</h3>
               <p className="mt-3 text-[13px] font-medium text-slate-500 max-w-xs mx-auto leading-relaxed">All extractions have been successfully authorized or quarantined. No items currently require sign-off.</p>
             </div>
           ) : (
