@@ -46,6 +46,7 @@ export function OverallStatus({
   statusSummary,
   header,
   onAcknowledge,
+  acknowledging,
   isAcknowledged,
   showAcknowledgeButton,
 }: {
@@ -57,6 +58,7 @@ export function OverallStatus({
   statusSummary?: StatusSummary;
   header?: any;
   onAcknowledge?: () => void;
+  acknowledging?: boolean;
   isAcknowledged?: boolean;
   showAcknowledgeButton?: boolean;
 }) {
@@ -137,12 +139,20 @@ console.log(showAcknowledgeButton,isAcknowledged,'showAcknowledgeButton')
               <button
                 type="button"
                 onClick={onAcknowledge}
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-slate-700 py-3 text-[11px] font-bold text-white transition hover:bg-slate-800 active:scale-[0.98]"
+                disabled={acknowledging}
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-slate-700 py-3 text-[11px] font-bold text-white transition hover:bg-slate-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-400 disabled:text-slate-200"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 6L9 17l-5-5" />
-                </svg>
-                Mark as Acknowledged
+                {acknowledging ? (
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="9" strokeOpacity="0.25" />
+                    <path d="M21 12a9 9 0 0 1-9 9" />
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                )}
+                {acknowledging ? "Acknowledging…" : "Mark as Acknowledged"}
               </button>
             )}
 
