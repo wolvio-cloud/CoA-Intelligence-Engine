@@ -42,8 +42,12 @@ export function DispositionPanel({
       <div className="border-b border-slate-100 bg-slate-50/30 px-6 py-5">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold tracking-tight text-slate-900">Compliance Authorization</h3>
-            <p className="mt-1 text-[11px] font-semibold text-slate-400">Final Verification Tier</p>
+            <h3 className="text-sm font-bold tracking-tight text-slate-900">
+              Disposition Decision
+            </h3>
+            <p className="mt-1 text-[11px] font-semibold text-slate-400">
+              Select the appropriate disposition for this lot and provide any relevant remarks.
+            </p>
           </div>
           {isCompleted && (
             <div className="flex items-center gap-1.5 rounded bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-700 border border-emerald-100">
@@ -78,7 +82,7 @@ export function DispositionPanel({
                       : "border-slate-200 bg-white text-slate-400 hover:border-slate-300 hover:bg-slate-50"
                   }`}
                 >
-                  <div className={`h-2.5 w-2.5 rounded-sm ${
+                  <div className={`h-2.5 w-2.5 rounded-xl ${
                     disposition === opt
                       ? opt === "RELEASE" ? "bg-emerald-500" : opt === "HOLD" ? "bg-amber-500" : "bg-rose-500"
                       : "bg-slate-200"

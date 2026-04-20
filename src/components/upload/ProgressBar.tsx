@@ -94,13 +94,12 @@ function PipelineStepRail({
               className="flex min-w-0 flex-1 max-w-[6rem] shrink-0 flex-col items-center sm:max-w-[7rem]"
             >
               <div
-                className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-[11px] font-bold transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:h-11 sm:w-11 sm:text-xs ${
-                  done
+                className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-[11px] font-bold transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:h-11 sm:w-11 sm:text-xs ${done
                     ? "scale-100 border-navy bg-navy text-white shadow-sm"
                     : current
                       ? "scale-[1.07] border-brand-blue bg-white text-brand-blue shadow-md animate-coa-ring-pulse"
                       : "scale-100 border-slate-200/90 bg-slate-50 text-slate-400"
-                }`}
+                  }`}
                 style={current ? { borderColor: brandColors.blue, color: brandColors.blue } : undefined}
               >
                 {done ? (
@@ -115,9 +114,8 @@ function PipelineStepRail({
                 )}
               </div>
               <span
-                className={`mt-2.5 w-full truncate text-center text-[9px] font-semibold uppercase tracking-[0.06em] transition-colors duration-500 sm:text-[10px] ${
-                  current ? "text-navy" : done ? "text-slate-600" : "text-slate-400"
-                }`}
+                className={`mt-2.5 w-full truncate text-center text-[9px] font-semibold uppercase tracking-[0.06em] transition-colors duration-500 sm:text-[10px] ${current ? "text-navy" : done ? "text-slate-600" : "text-slate-400"
+                  }`}
               >
                 {copy.short}
               </span>
@@ -127,7 +125,8 @@ function PipelineStepRail({
           if (i >= stages.length - 1) return [node];
 
           const showSheen =
-            segState === "active" || (forceFlowOnFirstSegment && i === 0 && idx === 0);
+            segState === "active" ||
+            (segState === "done" && i === idx - 1);
 
           const line = (
             <div
@@ -136,9 +135,8 @@ function PipelineStepRail({
               aria-hidden
             >
               <div
-                className={`absolute inset-0 rounded-full transition-colors duration-700 ease-out ${
-                  segState === "done" ? "bg-navy/55" : "bg-slate-200/95"
-                }`}
+                className={`absolute inset-0 rounded-full transition-colors duration-700 ease-out ${segState === "done" ? "bg-navy/55" : "bg-slate-200/95"
+                  }`}
               />
               {showSheen ? (
                 <div

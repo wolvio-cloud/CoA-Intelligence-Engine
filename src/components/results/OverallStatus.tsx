@@ -63,7 +63,7 @@ export function OverallStatus({
   const key = isStatusKey(status) ? status : "REVIEW";
   const { title: statusTitle, desc: statusDesc } = STATUS_DESCRIPTIONS[key];
   const fileLabel = looksLikeUuidSegment(filename) ? "Uploaded document" : filename;
-
+console.log(showAcknowledgeButton,isAcknowledged,'showAcknowledgeButton')
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
       <div className="grid lg:grid-cols-12">
@@ -107,7 +107,7 @@ export function OverallStatus({
                       key={k}
                       className="inline-flex items-center gap-2.5 rounded border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold ring-1 ring-inset ring-slate-100"
                     >
-                      <span className="h-2 w-2 shrink-0 rounded-sm" style={{ backgroundColor: stripe }} />
+                      <span className="h-2 w-2 shrink-0 rounded-xl" style={{ backgroundColor: stripe }} />
                       <span className="text-slate-500">{k.charAt(0) + k.slice(1).toLowerCase()}</span>
                       <span className="text-slate-900">{n}</span>
                     </span>
@@ -137,12 +137,12 @@ export function OverallStatus({
               <button
                 type="button"
                 onClick={onAcknowledge}
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded bg-navy py-3 text-[11px] font-bold text-white transition hover:bg-slate-800 active:scale-[0.98]"
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-navy py-3 text-[11px] font-bold text-white transition hover:bg-slate-800 active:scale-[0.98]"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 6L9 17l-5-5" />
                 </svg>
-                Sign Off
+                Mark as Acknowledged
               </button>
             )}
 
