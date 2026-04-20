@@ -1,3 +1,12 @@
+interface StatCardProps {
+  label: string;
+  value: string | number;
+  change?: string;
+  changePositive?: boolean;
+  icon: React.ReactNode;
+  accent: string;
+}
+
 export function StatCard({ label, value, change, changePositive, icon, accent }: StatCardProps) {
   const showDelta = change != null && change !== "";
 
