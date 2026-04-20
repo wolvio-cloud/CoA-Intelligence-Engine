@@ -5,9 +5,10 @@ interface BarChartProps {
   max?: number;
   title: string;
   subtitle?: string;
+  onBarClick?: (label: string) => void;
 }
 
-export function BarChart({ data, max, title, subtitle }: BarChartProps) {
+export function BarChart({ data, max, title, subtitle, onBarClick }: BarChartProps) {
   const maxVal = max ?? Math.max(...data.map((d) => d.value), 1);
 
   return (
@@ -28,9 +29,13 @@ export function BarChart({ data, max, title, subtitle }: BarChartProps) {
           const pct = maxVal > 0 ? (item.value / maxVal) * 100 : 0;
 
           return (
-            <div
+            <button
               key={item.label}
-              className="group flex flex-1 flex-col items-center gap-2 h-full justify-end"
+              type="button"
+              onClick={() => onBarClick?.(item.label)}
+              className={`group flex flex-1 flex-col items-center gap-2 h-full justify-end rounded transition ${
+                onBarClick ? "cursor-pointer hover:opacity-75" : ""
+              }`}
             >
               {/* Bar container */}
               <div
@@ -56,7 +61,7 @@ export function BarChart({ data, max, title, subtitle }: BarChartProps) {
               <span className="text-[10px] font-bold text-slate-400 text-center uppercase tracking-wider mt-1 truncate w-full px-1">
                 {item.label}
               </span>
-            </div>
+            </button>
           );
         })}
       </div>

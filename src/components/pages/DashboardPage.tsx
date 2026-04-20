@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -10,7 +11,7 @@ import { BarChart } from "@/components/dashboard/BarChart";
 import { TrendLine } from "@/components/dashboard/TrendLine";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { listSubmissions } from "@/lib/api";
-import { buildLastSevenDayTrend, buildOutcomeBars, computeDashboardStats } from "@/lib/dashboardMetrics";
+import { buildLastSevenDayTrend, buildDispositionBars, computeDashboardStats } from "@/lib/dashboardMetrics";
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -44,6 +45,7 @@ function QuickAction({ icon, label, sublabel, accent, href }: {
 
 export function DashboardPage({ onNavigate }: { onNavigate?: (page: any) => void }) {
   const { user } = useAuth();
+  const router = useRouter();
 
   const submissionsQuery = useQuery({
     queryKey: ["coa-submissions", user?.id ?? "none"],
@@ -56,7 +58,7 @@ export function DashboardPage({ onNavigate }: { onNavigate?: (page: any) => void
   const submissions = submissionsQuery.data ?? [];
   const stats = useMemo(() => computeDashboardStats(submissions), [submissions]);
   const trendData = useMemo(() => buildLastSevenDayTrend(submissions), [submissions]);
-  const outcomeBars = useMemo(() => buildOutcomeBars(submissions), [submissions]);
+  const dispositionBars = useMemo(() => buildDispositionBars(submissions), [submissions]);
 
   const donutSegments = useMemo(
     () =>
@@ -83,14 +85,59 @@ export function DashboardPage({ onNavigate }: { onNavigate?: (page: any) => void
 
   const showCharts = submissions.length > 0 || submissionsQuery.isLoading;
 
+  const handleOutcomeClick = (label: string) => {
+    const statusMap: Record<string, string> = {
+      "Pass": "PASS",
+      "Warning": "WARNING",
+      "Fail": "FAIL",
+      "Review": "REVIEW",
+      "Error": "ERROR",
+    };
+    const status = statusMap[label];
+    if (status) {
+      router.push(`/recent-coa?status=${encodeURIComponent(status)}`);
+    }
+  };
+
+  const handleDispositionClick = (label: string) => {
+    const dispositionMap: Record<string, string> = {
+      "Pending": "",
+      "Release": "RELEASE",
+      "Hold": "HOLD",
+      "Reject": "REJECT",
+    };
+    const disposition = dispositionMap[label];
+    if (disposition !== undefined) {
+      if (disposition === "") {
+        router.push(`/recent-coa?disposition=pending`);
+      } else {
+        router.push(`/recent-coa?disposition=${encodeURIComponent(disposition)}`);
+      }
+    }
+  };
+
+  const handlePassRateClick = () => {
+    router.push(`/recent-coa?status=${encodeURIComponent("PASS")}`);
+  };
+
+  const handlePendingReviewClick = () => {
+    router.push(`/recent-coa?status=${encodeURIComponent("REVIEW")}&status2=${encodeURIComponent("WARNING")}`);
+  };
+
+  const handleFailedClick = () => {
+    router.push(`/recent-coa?status=${encodeURIComponent("FAIL")}&status2=${encodeURIComponent("ERROR")}`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-base font-semibold text-slate-900">
-            {greeting}, {displayName}
+            {greeting}, {displayName} 
           </h2>
-          <p className="mt-0.5 text-sm text-slate-500">Summary from your latest CoA submissions (live data)</p>
+          <p className="mt-0.5 text-sm text-slate-500">
+            Here's a summary of your CoA submissions and insights. Dive in to explore the details!
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200/70 bg-white px-3.5 py-2 shadow-sm">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -114,52 +161,74 @@ export function DashboardPage({ onNavigate }: { onNavigate?: (page: any) => void
       ) : null}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard
-          label="Total (loaded)"
-          value={submissionsQuery.isLoading ? "…" : String(stats.total)}
-          accent="#2563eb"
-          icon={
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="16" y1="13" x2="8" y2="13" />
-              <line x1="16" y1="17" x2="8" y2="17" />
-            </svg>
-          }
-        />
-        <StatCard
-          label="Pass rate (all checks)"
-          value={submissionsQuery.isLoading ? "…" : `${stats.passRate}%`}
-          accent="#10b981"
-          icon={
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          }
-        />
-        <StatCard
-          label="Review / warning"
-          value={submissionsQuery.isLoading ? "…" : String(stats.pendingReview)}
-          accent="#f59e0b"
-          icon={
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-          }
-        />
-        <StatCard
-          label="Failed / error"
-          value={submissionsQuery.isLoading ? "…" : String(stats.failed)}
-          accent="#ef4444"
-          icon={
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="15" y1="9" x2="9" y2="15" />
-              <line x1="9" y1="9" x2="15" y2="15" />
-            </svg>
-          }
-        />
+        <Link href="/recent-coa"
+          className="cursor-pointer"
+        >
+          <StatCard
+            label="Total (loaded)"
+            value={submissionsQuery.isLoading ? "…" : String(stats.total)}
+            accent="#2563eb"
+            icon={
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+            }
+          />
+        </Link>
+        <Link href="/recent-coa?status=PASS"
+          type="button"
+          onClick={handlePassRateClick}
+          className="cursor-pointer"
+        >
+          <StatCard
+            label="Pass rate (all checks)"
+            value={submissionsQuery.isLoading ? "…" : `${stats.passRate}%`}
+            accent="#10b981"
+            icon={
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            }
+          />
+        </Link>
+        <Link href="/recent-coa?status=REVIEW&status2=WARNING"
+          type="button"
+          onClick={handlePendingReviewClick}
+          className="cursor-pointer"
+        >
+          <StatCard
+            label="Review / warning"
+            value={submissionsQuery.isLoading ? "…" : String(stats.pendingReview)}
+            accent="#f59e0b"
+            icon={
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            }
+          />
+        </Link>
+        <Link href="/recent-coa?status=FAIL"
+          type="button"
+          onClick={handleFailedClick}
+          className="cursor-pointer"
+        >
+          <StatCard
+            label="Failed / error"
+            value={submissionsQuery.isLoading ? "…" : String(stats.failed)}
+            accent="#ef4444"
+            icon={
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="15" y1="9" x2="9" y2="15" />
+                <line x1="9" y1="9" x2="15" y2="15" />
+              </svg>
+            }
+          />
+        </Link>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-3">
@@ -182,10 +251,11 @@ export function DashboardPage({ onNavigate }: { onNavigate?: (page: any) => void
         {showCharts && donutSegments.length > 0 ? (
           <DonutChart
             segments={donutSegments}
-            title="Status distribution"
-            subtitle="By rolled-up lot outcome"
+            title="CoA AI Assist Outcomes"
+            subtitle="Breakdown of outcomes for loaded submissions"
             centerValue={submissionsQuery.isLoading ? "…" : String(stats.total)}
-            centerLabel="In view"
+            centerLabel="Total"
+            onSegmentClick={handleOutcomeClick}
           />
         ) : !submissionsQuery.isLoading ? (
           <div className="flex min-h-[200px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-12 text-center">
@@ -203,17 +273,18 @@ export function DashboardPage({ onNavigate }: { onNavigate?: (page: any) => void
         <div className="lg:col-span-2">
           <RecentActivity submissions={recent} />
         </div>
-        {showCharts && outcomeBars.length > 0 ? (
+        {showCharts && dispositionBars.length > 0 ? (
           <BarChart
-            data={outcomeBars}
-            max={Math.max(...outcomeBars.map((d) => d.value), 1)}
-            title="Outcome mix"
-            subtitle="Submissions per outcome (loaded set)"
+            data={dispositionBars}
+            max={Math.max(...dispositionBars.map((d) => d.value), 1)}
+            title="Disposition Decision"
+            subtitle="Manager decisions on processed submissions"
+            onBarClick={handleDispositionClick}
           />
         ) : !submissionsQuery.isLoading ? (
           <div className="flex min-h-[200px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-12 text-center">
-            <p className="text-sm font-medium text-slate-600">No outcome bars yet</p>
-            <p className="mt-1 text-xs text-slate-500">Outcomes appear after submissions are processed.</p>
+            <p className="text-sm font-medium text-slate-600">No disposition decisions yet</p>
+            <p className="mt-1 text-xs text-slate-500">Decisions appear after submissions are signed off.</p>
           </div>
         ) : (
           <div className="flex min-h-[200px] items-center justify-center rounded-2xl border border-slate-200/70 bg-white text-sm text-slate-400">

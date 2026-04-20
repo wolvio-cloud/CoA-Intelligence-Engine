@@ -48,6 +48,42 @@ export function buildOutcomeBars(submissions: SubmissionSummary[]): OutcomeBar[]
     }));
 }
 
+export type DispositionBar = { label: string; value: number; color: string };
+
+export function buildDispositionBars(submissions: SubmissionSummary[]): DispositionBar[] {
+  const order: Array<"RELEASE" | "HOLD" | "REJECT" | "PENDING"> = ["PENDING", "RELEASE", "HOLD", "REJECT"];
+  const counts: Record<"RELEASE" | "HOLD" | "REJECT" | "PENDING", number> = {
+    RELEASE: 0,
+    HOLD: 0,
+    REJECT: 0,
+    PENDING: 0,
+  };
+
+  for (const s of submissions) {
+    const disposition = s.disposition as "RELEASE" | "HOLD" | "REJECT" | null;
+    if (disposition && disposition in counts) {
+      counts[disposition] += 1;
+    } else if (!disposition) {
+      counts["PENDING"] += 1;
+    }
+  }
+
+  const colorMap: Record<"RELEASE" | "HOLD" | "REJECT" | "PENDING", string> = {
+    PENDING: "#94a3b8",
+    RELEASE: "#10b981",
+    HOLD: "#f59e0b",
+    REJECT: "#ef4444",
+  };
+
+  return order
+    .filter((k) => counts[k] > 0)
+    .map((k) => ({
+      label: k.charAt(0) + k.slice(1).toLowerCase(),
+      value: counts[k],
+      color: colorMap[k],
+    }));
+}
+
 export function computeDashboardStats(submissions: SubmissionSummary[]) {
   const total = submissions.length;
   const completed = submissions.filter((s) => s.stage === "complete");
