@@ -61,8 +61,82 @@ body {
     animation: fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
   }
 
+  .animate-coa-stage-enter {
+    animation: coa-stage-enter 0.35s ease-out both;
+  }
+
+  .animate-coa-ring-pulse {
+    animation: coa-ring-pulse 1.5s ease-in-out infinite;
+  }
+
+  .animate-coa-orbit-dot {
+    animation: coa-orbit-dot 1.3s ease-in-out infinite;
+  }
+
+  .animate-coa-line-sheen {
+    animation: coa-line-sheen 1.4s ease-out infinite;
+  }
+
+  .animate-coa-upload-bar {
+    animation: coa-upload-bar 1.8s linear infinite;
+  }
+
   .text-balance {
     text-wrap: balance;
+  }
+}
+
+@keyframes coa-stage-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes coa-ring-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.6;
+  }
+}
+
+@keyframes coa-orbit-dot {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(1px);
+  }
+}
+
+@keyframes coa-line-sheen {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes coa-upload-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
   }
 }
 

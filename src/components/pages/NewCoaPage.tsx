@@ -11,8 +11,9 @@ import { ExportButtons } from "@/components/export/ExportButtons";
 import { useCoaUpload } from "@/hooks/useCoaUpload";
 import { useCoaStatus } from "@/hooks/useCoaStatus";
 import { useCoaResult } from "@/hooks/useCoaResult";
+import { useAuth } from "@/context/AuthContext";
 import type { CoaParameter, PipelineStage } from "@/lib/types";
-import { fetchResult } from "@/lib/api";
+import { acknowledgeSubmission, fetchResult } from "@/lib/api";
 
 type Phase = "upload" | "processing" | "results";
 
@@ -49,10 +50,12 @@ export function NewCoaPage() {
   /** Stepper index 0–4 (Queue → Store). */
   const [visualStageIdx, setVisualStageIdx] = useState(0);
 
+  const { user } = useAuth();
+  const [acknowledging, setAcknowledging] = useState(false);
   const coaUpload = useCoaUpload();
   const pipelineActive = phase === "processing" && Boolean(coaUpload.jobId);
   const status = useCoaStatus(coaUpload.jobId ?? null, pipelineActive);
-  const { data, loading } = useCoaResult(coaUpload.jobId ?? null, phase === "results");
+  const { data, loading, refetch } = useCoaResult(coaUpload.jobId ?? null, phase === "results");
 
   /** Advance queue → … → store every 6s for the whole processing phase (frontend-only; not tied to job id). */
   useEffect(() => {
@@ -265,6 +268,23 @@ export function NewCoaPage() {
                 matchScore={data.product_match.match_score}
                 statusSummary={data.status_summary}
                 header={data.header}
+                isAcknowledged={!!data.analyst_acknowledged_at}
+                showAcknowledgeButton={
+                  (user?.role || "analyst") !== "manager" && !data.analyst_acknowledged_at
+                }
+                acknowledging={acknowledging}
+                onAcknowledge={async () => {
+                  if (!window.confirm("Acknowledge that extraction is verified? This moves the item to Tier 2 (Manager Approval).")) return;
+                  try {
+                    setAcknowledging(true);
+                    await acknowledgeSubmission(data.id);
+                    await refetch();
+                  } catch (e) {
+                    alert("Failed to acknowledge: " + (e instanceof Error ? e.message : String(e)));
+                  } finally {
+                    setAcknowledging(false);
+                  }
+                }}
               />
 
               <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_min(100%,400px)] xl:items-start xl:gap-8">
