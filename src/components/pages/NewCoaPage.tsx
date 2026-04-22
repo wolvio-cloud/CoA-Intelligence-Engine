@@ -1,19 +1,21 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DropZone } from "@/components/upload/DropZone";
 import { ProgressBar } from "@/components/upload/ProgressBar";
 import { OverallStatus } from "@/components/results/OverallStatus";
 import { ResultTable } from "@/components/results/ResultTable";
 import { ParameterDetail } from "@/components/results/ParameterDetail";
 import { ExportButtons } from "@/components/export/ExportButtons";
+import { DetailHeaderWorkflowStatus } from "@/components/results/DetailHeaderWorkflowStatus";
 import { useCoaUpload } from "@/hooks/useCoaUpload";
 import { useCoaStatus } from "@/hooks/useCoaStatus";
 import { useCoaResult } from "@/hooks/useCoaResult";
 import { useAuth } from "@/context/AuthContext";
-import type { CoaParameter, PipelineStage } from "@/lib/types";
+import type { CoaParameter, PipelineStage, SubmissionSummary } from "@/lib/types";
 import { acknowledgeSubmission, fetchResult } from "@/lib/api";
+import { isDispositionAlreadySubmitted, mergeListQcWithResult } from "@/lib/qcDisposition";
 
 type Phase = "upload" | "processing" | "results";
 
@@ -52,6 +54,8 @@ export function NewCoaPage() {
 
   const { user } = useAuth();
   const [acknowledging, setAcknowledging] = useState(false);
+  /** When `/result` lags after acknowledge, keep header + workflow in sync until refetch includes `analyst_acknowledged_at`. */
+  const [analystAckAtOverride, setAnalystAckAtOverride] = useState<string | null>(null);
   const coaUpload = useCoaUpload();
   const pipelineActive = phase === "processing" && Boolean(coaUpload.jobId);
   const status = useCoaStatus(coaUpload.jobId ?? null, pipelineActive);
@@ -102,6 +106,65 @@ export function NewCoaPage() {
     });
   }, [data]);
 
+  useEffect(() => {
+    if (data?.analyst_acknowledged_at) setAnalystAckAtOverride(null);
+  }, [data?.analyst_acknowledged_at]);
+
+  const resultSubmissionStub = useMemo((): SubmissionSummary | null => {
+    if (!data) return null;
+    return {
+      id: data.id,
+      filename: data.filename,
+      created_at: data.created_at,
+      stage: "complete",
+      overall_status: data.overall_status,
+      parameter_count: data.parameters.length,
+      status_summary: data.status_summary,
+      header: data.header,
+      approval_status: data.approval_status,
+      analyst_name: data.analyst_name,
+      analyst_acknowledged_at: data.analyst_acknowledged_at,
+      manager_name: data.manager_name,
+      manager_signed_at: data.manager_signed_at,
+      disposition: data.disposition,
+      manager_notes: data.manager_notes,
+    };
+  }, [data]);
+
+  const newCoaQcMerged = useMemo(
+    () => (data && resultSubmissionStub ? mergeListQcWithResult(resultSubmissionStub, data) : null),
+    [data, resultSubmissionStub],
+  );
+
+  const newCoaDispositionDone = useMemo(
+    () =>
+      newCoaQcMerged
+        ? isDispositionAlreadySubmitted({
+            disposition: newCoaQcMerged.disposition,
+            manager_signed_at: newCoaQcMerged.manager_signed_at,
+            approval_status: newCoaQcMerged.approval_status,
+          })
+        : false,
+    [newCoaQcMerged],
+  );
+
+  const newCoaWorkflowDisplay = useMemo(() => {
+    if (!data || !newCoaQcMerged) {
+      return {
+        analystAcknowledgedAt: undefined as string | null | undefined,
+        isDispositionCompleted: false,
+        disposition: null as string | null,
+        approvalStatus: null as string | null,
+      };
+    }
+    return {
+      analystAcknowledgedAt: newCoaQcMerged.analyst_acknowledged_at ?? analystAckAtOverride ?? null,
+      isDispositionCompleted: newCoaDispositionDone,
+      disposition: newCoaQcMerged.disposition,
+      approvalStatus: newCoaQcMerged.approval_status,
+    };
+  }, [data, newCoaQcMerged, newCoaDispositionDone, analystAckAtOverride]);
+
   const handleFile = async (file: File) => {
     setSelectedParam(null);
     setVisualStageIdx(0);
@@ -119,6 +182,7 @@ export function NewCoaPage() {
     setPhase("upload");
     setSelectedParam(null);
     setVisualStageIdx(0);
+    setAnalystAckAtOverride(null);
   };
 
   const safeIdx = Math.min(Math.max(visualStageIdx, 0), LAST_VISUAL_INDEX);
@@ -214,12 +278,38 @@ export function NewCoaPage() {
       {phase === "results" && (
         <>
           {loading || !data ? (
-            <div className="flex min-h-[200px] items-center justify-center rounded-2xl border border-slate-200/70 bg-white shadow-sm">
-              <div className="flex flex-col items-center gap-3 text-slate-400">
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                </svg>
-                <p className="text-sm">Loading results…</p>
+            <div className="space-y-8">
+              <header className="flex flex-col gap-4 rounded-2xl border border-slate-200/70 bg-white px-4 py-3.5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="inline-flex w-fit items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-white sm:text-sm"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+                      <path d="M19 12H5M12 5l-7 7 7 7"/>
+                    </svg>
+                    New submission
+                  </button>
+                  <div className="hidden h-9 w-px shrink-0 bg-slate-200 sm:block" aria-hidden />
+                  <p className="text-sm font-medium text-slate-500">Loading results…</p>
+                </div>
+                <div className="flex shrink-0 flex-wrap items-center justify-end gap-3 sm:justify-start">
+                  <DetailHeaderWorkflowStatus
+                    analystAcknowledgedAt={newCoaWorkflowDisplay.analystAcknowledgedAt}
+                    isDispositionCompleted={newCoaWorkflowDisplay.isDispositionCompleted}
+                    disposition={newCoaWorkflowDisplay.disposition}
+                    approvalStatus={newCoaWorkflowDisplay.approvalStatus}
+                  />
+                </div>
+              </header>
+              <div className="flex min-h-[200px] items-center justify-center rounded-2xl border border-slate-200/70 bg-white shadow-sm">
+                <div className="flex flex-col items-center gap-3 text-slate-400">
+                  <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                  </svg>
+                  <p className="text-sm">Loading results…</p>
+                </div>
               </div>
             </div>
           ) : (
@@ -257,7 +347,16 @@ export function NewCoaPage() {
                     )}
                   </div>
                 </div>
-                <ExportButtons jobId={data.id} compact />
+                <div className="flex shrink-0 flex-wrap items-center justify-end gap-3 sm:justify-start">
+                  <DetailHeaderWorkflowStatus
+                    analystAcknowledgedAt={newCoaWorkflowDisplay.analystAcknowledgedAt}
+                    isDispositionCompleted={newCoaWorkflowDisplay.isDispositionCompleted}
+                    disposition={newCoaWorkflowDisplay.disposition}
+                    approvalStatus={newCoaWorkflowDisplay.approvalStatus}
+                  />
+                  <div className="hidden h-6 w-px shrink-0 bg-slate-200 sm:block" aria-hidden />
+                  <ExportButtons jobId={data.id} compact />
+                </div>
               </header>
 
               <OverallStatus
@@ -268,9 +367,11 @@ export function NewCoaPage() {
                 matchScore={data.product_match.match_score}
                 statusSummary={data.status_summary}
                 header={data.header}
-                isAcknowledged={!!data.analyst_acknowledged_at}
+                isAcknowledged={Boolean(data.analyst_acknowledged_at ?? analystAckAtOverride)}
                 showAcknowledgeButton={
-                  (user?.role || "analyst") !== "manager" && !data.analyst_acknowledged_at
+                  (user?.role || "analyst") !== "manager" &&
+                  !data.analyst_acknowledged_at &&
+                  !analystAckAtOverride
                 }
                 acknowledging={acknowledging}
                 onAcknowledge={async () => {
@@ -278,6 +379,7 @@ export function NewCoaPage() {
                   try {
                     setAcknowledging(true);
                     await acknowledgeSubmission(data.id);
+                    setAnalystAckAtOverride(new Date().toISOString());
                     await refetch();
                   } catch (e) {
                     alert("Failed to acknowledge: " + (e instanceof Error ? e.message : String(e)));

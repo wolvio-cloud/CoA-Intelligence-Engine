@@ -13,6 +13,7 @@ export function mergeListQcWithResult(
   manager_notes: string | null;
   manager_name: string | null;
   approval_status: string | null;
+  analyst_acknowledged_at: string | null;
 } {
   return {
     disposition: result.disposition ?? submission.disposition ?? null,
@@ -20,6 +21,8 @@ export function mergeListQcWithResult(
     manager_notes: result.manager_notes ?? submission.manager_notes ?? null,
     manager_name: result.manager_name ?? submission.manager_name ?? null,
     approval_status: result.approval_status ?? submission.approval_status ?? null,
+    analyst_acknowledged_at:
+      result.analyst_acknowledged_at ?? submission.analyst_acknowledged_at ?? null,
   };
 }
 

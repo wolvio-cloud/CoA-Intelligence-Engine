@@ -134,18 +134,35 @@ export function Sidebar({ activePage, onLogout, user }: SidebarProps) {
         }`}
       >
         <div className="flex shrink-0 flex-col items-center gap-3 border-b border-slate-800 px-4 py-6">
-          <div className="flex w-full items-center gap-3">
-            {brand.logoSrc && (
-              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-white/5 p-1 ring-1 ring-white/10">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={brand.logoSrc} alt={brand.logoAlt} className="h-full w-full object-contain brightness-110" />
-              </div>
-            )}
-            <div className="flex flex-col min-w-0">
-              <span className="text-2xl font-bold text-white tracking-tight leading-none">Axivera</span>
-              <span className="text-xs text-slate-300 font-medium tracking-wide mt-1">Pharmaceuticals</span>
+          {brand.logoSrc && brand.logoPresentation === "wordmark" ? (
+            <div className="flex w-full items-center justify-center px-1">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={brand.logoSrc}
+                alt={brand.logoAlt}
+                className="h-10 w-auto max-w-full object-contain object-center"
+              />
             </div>
-          </div>
+          ) : (
+            <div className="flex w-full items-center gap-3">
+              {brand.logoSrc ? (
+                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl p-1 ring-1 ring-white/15">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={brand.logoSrc} alt={brand.logoAlt} className="h-full w-full object-contain brightness-110" />
+                </div>
+              ) : (
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-lg font-bold text-white ring-1 ring-white/15">
+                  {brand.logoMark}
+                </div>
+              )}
+              <div className="flex min-w-0 flex-col">
+                <span className="text-2xl font-bold text-white tracking-tight leading-none">{brand.productName}</span>
+                {brand.productSubtitle ? (
+                  <span className="mt-1 text-xs font-medium tracking-wide text-slate-300">{brand.productSubtitle}</span>
+                ) : null}
+              </div>
+            </div>
+          )}
           <div className="w-full text-center border-t border-slate-800/50">
             <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500 whitespace-nowrap">
               {brand.tagline}
