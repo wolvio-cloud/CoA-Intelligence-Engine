@@ -297,7 +297,8 @@ export async function fetchResult(jobId: string): Promise<CoaJobResult> {
     overall_status: overallStatus,
     status_summary,
     header: data.header,
-    approval_status: data.approval_status ?? "PENDING",
+    /** Omit default so UI can merge with list row when `/result` omits this field. */
+    approval_status: data.approval_status ?? null,
     analyst_name: data.analyst_name,
     analyst_acknowledged_at: data.analyst_acknowledged_at,
     manager_name: data.manager_name,
@@ -324,8 +325,11 @@ function parseListOverallStatus(raw: unknown, fallback: ValidationStatusKey): Va
   return fallback;
 }
 
-export async function listSubmissions(limit = 100): Promise<SubmissionSummary[]> {
-  const q = new URLSearchParams({ limit: String(Math.min(500, Math.max(1, limit))) });
+export async function listSubmissions(limit = 100, offset = 0): Promise<SubmissionSummary[]> {
+  const q = new URLSearchParams({ 
+    limit: String(Math.min(500, Math.max(1, limit))),
+    offset: String(Math.max(0, offset))
+  });
   const data = await fetchJson<any[]>(`${API_BASE}/submissions?${q.toString()}`);
   return data.map((item) => {
     const stage = submissionListStage(item.status);

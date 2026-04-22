@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { OverallStatus } from "@/components/results/OverallStatus";
 import { SubmissionsTable } from "@/components/submissions/SubmissionsTable";
 import { ResultTable } from "@/components/results/ResultTable";
@@ -12,6 +12,11 @@ import { useAuth } from "@/context/AuthContext";
 import { listSubmissions, deleteSubmission, downloadExport, downloadBulkExport, acknowledgeSubmission } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import type { CoaParameter, SubmissionSummary } from "@/lib/types";
+import {
+  dispositionDecisionLabel,
+  isDispositionAlreadySubmitted,
+  mergeListQcWithResult,
+} from "@/lib/qcDisposition";
 
 type View = "list" | "detail";
 
@@ -54,52 +59,51 @@ function EmptyState() {
   );
 }
 
-/** Header chip after manager sign-off (`approval_status` + optional raw `disposition`). */
-function ManagerDispositionBadge({
-  approvalStatus,
+/** Single-line workflow status, shown left of export in the detail header. */
+function DetailHeaderWorkflowStatus({
+  analystAcknowledgedAt,
+  isDispositionCompleted,
   disposition,
+  approvalStatus,
 }: {
-  approvalStatus?: string | null;
-  disposition?: string | null;
+  analystAcknowledgedAt: string | null | undefined;
+  isDispositionCompleted: boolean;
+  disposition: string | null;
+  approvalStatus: string | null;
 }) {
-  const a = (approvalStatus || "").toUpperCase().trim();
-  const d = (disposition || "").toUpperCase().trim();
-  const isReject = a === "REJECTED" || d === "REJECT";
-  const isHold = a === "HELD" || a === "HOLD" || d === "HOLD";
-  const isReleased = a === "RELEASED" || d === "RELEASE";
-
-  if (isReject) {
+  if (isDispositionCompleted) {
+    const label = dispositionDecisionLabel(disposition, approvalStatus);
+    const display =
+      label !== "—"
+        ? label
+        : (approvalStatus || "Submitted").replace(/_/g, " ");
+    const lower = display.toLowerCase();
+    const tone = lower.includes("reject")
+      ? "text-rose-700"
+      : lower.includes("hold")
+        ? "text-amber-700"
+        : "text-emerald-700";
     return (
-      <div className="inline-flex h-9 items-center gap-2 rounded-md border border-rose-100 bg-rose-50 px-3 text-[10px] font-bold uppercase tracking-wider text-rose-700">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
-          <path d="M18 6L6 18M6 6l12 12" />
-        </svg>
-        Reject
-      </div>
+      <p className="max-w-[min(100%,280px)] text-right text-[11px] leading-snug text-slate-600 sm:max-w-[320px] sm:text-left">
+        <span className="font-semibold text-slate-500">Disposition Decision:</span>{" "}
+        <span className={`font-bold ${tone}`}>{display}</span>
+      </p>
     );
   }
-  if (isHold) {
+  if (analystAcknowledgedAt) {
     return (
-      <div className="inline-flex h-9 items-center gap-2 rounded-md border border-amber-100 bg-amber-50 px-3 text-[10px] font-bold uppercase tracking-wider text-amber-700">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
-          <rect x="6" y="4" width="4" height="16" rx="1" />
-          <rect x="14" y="4" width="4" height="16" rx="1" />
-        </svg>
-        Hold
-      </div>
+      <p className="max-w-[min(100%,280px)] text-right text-[11px] leading-snug text-slate-600 sm:max-w-[320px] sm:text-left">
+        <span className="font-semibold text-slate-500">QC:</span>{" "}
+        <span className="font-bold text-amber-700">Pending</span>
+      </p>
     );
   }
-  if (isReleased) {
-    return (
-      <div className="inline-flex h-9 items-center gap-2 rounded-md border border-emerald-100 bg-emerald-50 px-3 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
-        Released
-      </div>
-    );
-  }
-  return null;
+  return (
+    <p className="max-w-[min(100%,280px)] text-right text-[11px] leading-snug text-slate-600 sm:max-w-[320px] sm:text-left">
+      <span className="font-semibold text-slate-500">AI Analysis:</span>{" "}
+      <span className="font-bold text-emerald-700">Complete</span>
+    </p>
+  );
 }
 
 function DetailView({
@@ -114,6 +118,12 @@ function DetailView({
   const router = useRouter();
   const [selectedParam, setSelectedParam] = useState<CoaParameter | null>(null);
   const { data, loading, refetch } = useCoaResult(submission.id, true);
+  const dispositionRef = useRef<HTMLDivElement>(null);
+
+  const qcMerged = useMemo(
+    () => (data ? mergeListQcWithResult(submission, data) : null),
+    [data, submission],
+  );
 
   useEffect(() => {
     if (!data?.parameters?.length) return;
@@ -122,6 +132,18 @@ function DetailView({
       return data.parameters[0];
     });
   }, [data]);
+
+  const scrollToDisposition = () => {
+    dispositionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const isDispositionCompleted = qcMerged
+    ? isDispositionAlreadySubmitted({
+        disposition: qcMerged.disposition,
+        manager_signed_at: qcMerged.manager_signed_at,
+        approval_status: qcMerged.approval_status,
+      })
+    : false;
 
   return (
     <div className="space-y-6">
@@ -158,16 +180,16 @@ function DetailView({
             )}
           </div>
         </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          {data && (
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-3 sm:justify-start">
+          {data && qcMerged && (
             <>
-              {userRole === "manager" && (data.approval_status || "").toUpperCase().trim() === "WAITING_FOR_QC" && (
-                <div className="inline-flex h-9 items-center gap-2 rounded-lg bg-blue-50 px-3 text-xs font-bold text-blue-600 border border-blue-100 italic">
-                  Awaiting your sign-off
-                </div>
-              )}
-              <ManagerDispositionBadge approvalStatus={data.approval_status} disposition={data.disposition} />
-              <div className="h-6 w-px bg-slate-200 mx-1" aria-hidden />
+              <DetailHeaderWorkflowStatus
+                analystAcknowledgedAt={data.analyst_acknowledged_at}
+                isDispositionCompleted={isDispositionCompleted}
+                disposition={qcMerged.disposition}
+                approvalStatus={qcMerged.approval_status}
+              />
+              <div className="hidden h-6 w-px shrink-0 bg-slate-200 sm:block" aria-hidden />
               <ExportButtons jobId={data.id} compact />
             </>
           )}
@@ -198,6 +220,9 @@ function DetailView({
               showAcknowledgeButton={
                 userRole !== "manager" && !data.analyst_acknowledged_at
               }
+              userRole={userRole}
+              isDispositionCompleted={isDispositionCompleted}
+              onScrollToDisposition={scrollToDisposition}
               onAcknowledge={async () => {
                 if (!window.confirm("Acknowledge that extraction is verified? This moves the item to Tier 2 (Manager Approval).")) return;
                 try {
@@ -221,18 +246,23 @@ function DetailView({
             </div>
           </div>
 
-          {(userRole === "manager" || data.manager_signed_at) && (
-            <DispositionPanel
-              submissionId={data.id}
-              onSuccess={async () => {
-                await refetch();
-                if (userRole === "manager") {
-                  router.push("/qc-panel");
-                }
-              }}
-              currentDisposition={data.disposition}
-              currentNotes={data.manager_notes}
-            />
+          {(userRole === "manager" || isDispositionCompleted) && qcMerged && (
+            <div ref={dispositionRef}>
+              <DispositionPanel
+                submissionId={data.id}
+                onSuccess={async () => {
+                  await refetch();
+                  if (userRole === "manager") {
+                    router.push("/qc-panel");
+                  }
+                }}
+                currentDisposition={qcMerged.disposition}
+                currentNotes={qcMerged.manager_notes}
+                managerSignedAt={qcMerged.manager_signed_at}
+                managerName={qcMerged.manager_name}
+                approvalStatus={qcMerged.approval_status}
+              />
+            </div>
           )}
         </>
       )}
