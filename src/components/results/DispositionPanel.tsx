@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signOffSubmission } from "@/lib/api";
+import { dispositionDecisionLabel, isDispositionAlreadySubmitted } from "@/lib/qcDisposition";
 
 type Disposition = "RELEASE" | "HOLD" | "REJECT";
 
@@ -10,6 +11,19 @@ interface DispositionPanelProps {
   onSuccess: () => Promise<void>;
   currentDisposition?: string | null;
   currentNotes?: string | null;
+  managerSignedAt?: string | null;
+  managerName?: string | null;
+  approvalStatus?: string | null;
+}
+
+function formatSignedAt(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
 }
 
 export function DispositionPanel({
@@ -17,10 +31,28 @@ export function DispositionPanel({
   onSuccess,
   currentDisposition,
   currentNotes,
+  managerSignedAt,
+  managerName,
+  approvalStatus,
 }: DispositionPanelProps) {
-  const [disposition, setDisposition] = useState<Disposition>((currentDisposition as Disposition) || "RELEASE");
+  const initialDisp = ((currentDisposition || "").toUpperCase().trim() as Disposition) || "RELEASE";
+  const safeInitial: Disposition =
+    initialDisp === "RELEASE" || initialDisp === "HOLD" || initialDisp === "REJECT" ? initialDisp : "RELEASE";
+
+  const [disposition, setDisposition] = useState<Disposition>(safeInitial);
   const [notes, setNotes] = useState(currentNotes || "");
   const [busy, setBusy] = useState(false);
+
+  const isCompleted = isDispositionAlreadySubmitted({
+    disposition: currentDisposition,
+    manager_signed_at: managerSignedAt,
+    approval_status: approvalStatus,
+  });
+
+  const submittedLabel = dispositionDecisionLabel(currentDisposition, approvalStatus);
+  const submittedNotes = (currentNotes ?? "").trim();
+  const decisionTone =
+    submittedLabel === "Reject" ? "reject" : submittedLabel === "Hold" ? "hold" : "release";
 
   const handleSubmit = async () => {
     if (!window.confirm(`Are you sure you want to ${disposition.toLowerCase()} this lot?`)) return;
@@ -35,8 +67,6 @@ export function DispositionPanel({
     }
   };
 
-  const isCompleted = Boolean(currentDisposition);
-
   return (
     <div className="mt-8 overflow-hidden rounded-lg border border-slate-200 bg-white">
       <div className="border-b border-slate-100 bg-slate-50/30 px-6 py-5">
@@ -46,88 +76,124 @@ export function DispositionPanel({
               Disposition Decision
             </h3>
             <p className="mt-1 text-[11px] font-semibold text-slate-400">
-              Select the appropriate disposition for this lot and provide any relevant remarks.
+              {isCompleted
+                ? "Recorded QC manager sign-off for this submission."
+                : "Select the appropriate disposition for this lot and provide any relevant remarks."}
             </p>
           </div>
           {isCompleted && (
             <div className="flex items-center gap-1.5 rounded bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-700 border border-emerald-100">
                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-               Authorized
+               Submitted
             </div>
           )}
         </div>
       </div>
 
       <div className="p-8">
-        <div className="space-y-8">
-          {isCompleted && (
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-6">
+        {isCompleted ? (
+          <div className="space-y-6">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50/40 p-6">
               <div className="flex items-start gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-bold text-emerald-900">Disposition Decision Submitted</p>
-                  <p className="mt-1 text-[12px] text-emerald-700">This submission has been reviewed and authorized. Changes are not allowed.</p>
+                <div className="min-w-0 flex-1 space-y-4">
+                  <p className="text-sm font-bold text-emerald-900">Disposition decision submitted</p>
+                  <dl className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Decision</dt>
+                      <dd className="mt-1">
+                        <span
+                          className={`inline-flex rounded-md border px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${
+                            decisionTone === "reject"
+                              ? "border-rose-200 bg-rose-50 text-rose-800"
+                              : decisionTone === "hold"
+                                ? "border-amber-200 bg-amber-50 text-amber-800"
+                                : "border-emerald-200 bg-emerald-50 text-emerald-800"
+                          }`}
+                        >
+                          {submittedLabel}
+                        </span>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Approval status</dt>
+                      <dd className="mt-1 text-[13px] font-bold text-slate-900">
+                        {(approvalStatus || "—").replace(/_/g, " ")}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Signed by</dt>
+                      <dd className="mt-1 text-[13px] font-bold text-slate-900">{managerName?.trim() || "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Signed on</dt>
+                      <dd className="mt-1 text-[13px] font-bold text-slate-900">{formatSignedAt(managerSignedAt)}</dd>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Remarks</dt>
+                      <dd className="mt-1 rounded-lg border border-slate-200 bg-white px-4 py-3 text-[13px] font-medium leading-relaxed text-slate-800">
+                        {submittedNotes || <span className="text-slate-400">No remarks provided.</span>}
+                      </dd>
+                    </div>
+                  </dl>
                 </div>
               </div>
             </div>
-          )}
-
-          {/* Decisions */}
-          <div>
-            <label className="mb-4 block text-[11px] font-semibold text-slate-400">
-              Select Disposition
-            </label>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {(["RELEASE", "HOLD", "REJECT"] as Disposition[]).map((opt) => (
-                <button
-                  key={opt}
-                  type="button"
-                  disabled={isCompleted || busy}
-                  onClick={() => setDisposition(opt)}
-                  className={`flex flex-col items-center justify-center gap-3 rounded-lg border p-5 transition-all ${
-                    disposition === opt
-                      ? opt === "RELEASE" 
-                        ? "border-emerald-200 bg-emerald-50/50 text-emerald-700 ring-1 ring-emerald-200" 
-                        : opt === "HOLD" 
-                          ? "border-amber-200 bg-amber-50/50 text-amber-700 ring-1 ring-amber-200"
-                          : "border-rose-200 bg-rose-50/50 text-rose-700 ring-1 ring-rose-200"
-                      : "border-slate-200 bg-white text-slate-400 hover:border-slate-300 hover:bg-slate-50"
-                  } ${isCompleted ? "cursor-not-allowed opacity-60" : ""}`}
-                >
-                  <div className={`h-2.5 w-2.5 rounded-xl ${
-                    disposition === opt
-                      ? opt === "RELEASE" ? "bg-emerald-500" : opt === "HOLD" ? "bg-amber-500" : "bg-rose-500"
-                      : "bg-slate-200"
-                  }`} />
-                  <span className="text-[12px] font-bold">{opt.charAt(0) + opt.slice(1).toLowerCase()}</span>
-                </button>
-              ))}
-            </div>
-            {isCompleted && (
-              <p className="mt-3 text-[11px] text-slate-500 font-medium">Current disposition: <span className="font-bold text-slate-700">{disposition}</span></p>
-            )}
           </div>
-
-          {/* Notes */}
-          <div className="space-y-4">
+        ) : (
+          <div className="space-y-8">
+            {/* Decisions */}
             <div>
               <label className="mb-4 block text-[11px] font-semibold text-slate-400">
-                Decision Remarks
+                Select Disposition
               </label>
-              <textarea
-                className="w-full min-h-[140px] rounded-lg border border-slate-200 bg-white p-4 text-[13px] font-medium text-slate-900 outline-none transition focus:border-slate-400 focus:ring-1 focus:ring-slate-400/10 disabled:bg-slate-50 disabled:text-slate-400 placeholder:text-slate-300"
-                placeholder="Include justification for this compliance decision..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                disabled={isCompleted || busy}
-              />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {(["RELEASE", "HOLD", "REJECT"] as Disposition[]).map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    disabled={busy}
+                    onClick={() => setDisposition(opt)}
+                    className={`flex flex-col items-center justify-center gap-3 rounded-lg border p-5 transition-all ${
+                      disposition === opt
+                        ? opt === "RELEASE"
+                          ? "border-emerald-200 bg-emerald-50/50 text-emerald-700 ring-1 ring-emerald-200"
+                          : opt === "HOLD"
+                            ? "border-amber-200 bg-amber-50/50 text-amber-700 ring-1 ring-amber-200"
+                            : "border-rose-200 bg-rose-50/50 text-rose-700 ring-1 ring-rose-200"
+                        : "border-slate-200 bg-white text-slate-400 hover:border-slate-300 hover:bg-slate-50"
+                    }`}
+                  >
+                    <div className={`h-2.5 w-2.5 rounded-xl ${
+                      disposition === opt
+                        ? opt === "RELEASE" ? "bg-emerald-500" : opt === "HOLD" ? "bg-amber-500" : "bg-rose-500"
+                        : "bg-slate-200"
+                    }`} />
+                    <span className="text-[12px] font-bold">{opt.charAt(0) + opt.slice(1).toLowerCase()}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-            
-            {!isCompleted && (
+
+            {/* Notes */}
+            <div className="space-y-4">
+              <div>
+                <label className="mb-4 block text-[11px] font-semibold text-slate-400">
+                  Decision Remarks
+                </label>
+                <textarea
+                  className="w-full min-h-[140px] rounded-lg border border-slate-200 bg-white p-4 text-[13px] font-medium text-slate-900 outline-none transition focus:border-slate-400 focus:ring-1 focus:ring-slate-400/10 disabled:bg-slate-50 disabled:text-slate-400 placeholder:text-slate-300"
+                  placeholder="Include justification for this compliance decision..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  disabled={busy}
+                />
+              </div>
+
               <div className="flex justify-end">
                 <button
                   type="button"
@@ -143,21 +209,9 @@ export function DispositionPanel({
                   Submit Decision
                 </button>
               </div>
-            )}
-
-            {isCompleted && (
-              <div className="flex justify-end">
-                <div className="flex items-center gap-2 rounded bg-slate-100 px-4 py-3 text-[11px] font-bold text-slate-600 border border-slate-200">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 2c6.627 0 12 5.373 12 12s-5.373 12-12 12S0 20.627 0 14 5.373 2 12 2z"/>
-                    <path d="M12 6v6l4 2.464"/>
-                  </svg>
-                  Submitted - No Changes Allowed
-                </div>
-              </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

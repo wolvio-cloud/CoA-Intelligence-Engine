@@ -297,7 +297,8 @@ export async function fetchResult(jobId: string): Promise<CoaJobResult> {
     overall_status: overallStatus,
     status_summary,
     header: data.header,
-    approval_status: data.approval_status ?? "PENDING",
+    /** Omit default so UI can merge with list row when `/result` omits this field. */
+    approval_status: data.approval_status ?? null,
     analyst_name: data.analyst_name,
     analyst_acknowledged_at: data.analyst_acknowledged_at,
     manager_name: data.manager_name,

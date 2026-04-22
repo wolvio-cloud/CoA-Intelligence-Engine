@@ -12,6 +12,11 @@ import { useAuth } from "@/context/AuthContext";
 import { listSubmissions, deleteSubmission, downloadExport, downloadBulkExport, acknowledgeSubmission } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import type { CoaParameter, SubmissionSummary } from "@/lib/types";
+import {
+  dispositionDecisionLabel,
+  isDispositionAlreadySubmitted,
+  mergeListQcWithResult,
+} from "@/lib/qcDisposition";
 
 type View = "list" | "detail";
 
@@ -54,52 +59,51 @@ function EmptyState() {
   );
 }
 
-/** Header chip after manager sign-off (`approval_status` + optional raw `disposition`). */
-function ManagerDispositionBadge({
-  approvalStatus,
+/** Single-line workflow status, shown left of export in the detail header. */
+function DetailHeaderWorkflowStatus({
+  analystAcknowledgedAt,
+  isDispositionCompleted,
   disposition,
+  approvalStatus,
 }: {
-  approvalStatus?: string | null;
-  disposition?: string | null;
+  analystAcknowledgedAt: string | null | undefined;
+  isDispositionCompleted: boolean;
+  disposition: string | null;
+  approvalStatus: string | null;
 }) {
-  const a = (approvalStatus || "").toUpperCase().trim();
-  const d = (disposition || "").toUpperCase().trim();
-  const isReject = a === "REJECTED" || d === "REJECT";
-  const isHold = a === "HELD" || a === "HOLD" || d === "HOLD";
-  const isReleased = a === "RELEASED" || d === "RELEASE";
-
-  if (isReject) {
+  if (isDispositionCompleted) {
+    const label = dispositionDecisionLabel(disposition, approvalStatus);
+    const display =
+      label !== "—"
+        ? label
+        : (approvalStatus || "Submitted").replace(/_/g, " ");
+    const lower = display.toLowerCase();
+    const tone = lower.includes("reject")
+      ? "text-rose-700"
+      : lower.includes("hold")
+        ? "text-amber-700"
+        : "text-emerald-700";
     return (
-      <div className="inline-flex h-9 items-center gap-2 rounded-md border border-rose-100 bg-rose-50 px-3 text-[10px] font-bold uppercase tracking-wider text-rose-700">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
-          <path d="M18 6L6 18M6 6l12 12" />
-        </svg>
-        Reject
-      </div>
+      <p className="max-w-[min(100%,280px)] text-right text-[11px] leading-snug text-slate-600 sm:max-w-[320px] sm:text-left">
+        <span className="font-semibold text-slate-500">Disposition Decision:</span>{" "}
+        <span className={`font-bold ${tone}`}>{display}</span>
+      </p>
     );
   }
-  if (isHold) {
+  if (analystAcknowledgedAt) {
     return (
-      <div className="inline-flex h-9 items-center gap-2 rounded-md border border-amber-100 bg-amber-50 px-3 text-[10px] font-bold uppercase tracking-wider text-amber-700">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden>
-          <rect x="6" y="4" width="4" height="16" rx="1" />
-          <rect x="14" y="4" width="4" height="16" rx="1" />
-        </svg>
-        Hold
-      </div>
+      <p className="max-w-[min(100%,280px)] text-right text-[11px] leading-snug text-slate-600 sm:max-w-[320px] sm:text-left">
+        <span className="font-semibold text-slate-500">QC:</span>{" "}
+        <span className="font-bold text-amber-700">Pending</span>
+      </p>
     );
   }
-  if (isReleased) {
-    return (
-      <div className="inline-flex h-9 items-center gap-2 rounded-md border border-emerald-100 bg-emerald-50 px-3 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
-        Released
-      </div>
-    );
-  }
-  return null;
+  return (
+    <p className="max-w-[min(100%,280px)] text-right text-[11px] leading-snug text-slate-600 sm:max-w-[320px] sm:text-left">
+      <span className="font-semibold text-slate-500">AI Analysis:</span>{" "}
+      <span className="font-bold text-emerald-700">Complete</span>
+    </p>
+  );
 }
 
 function DetailView({
@@ -116,6 +120,11 @@ function DetailView({
   const { data, loading, refetch } = useCoaResult(submission.id, true);
   const dispositionRef = useRef<HTMLDivElement>(null);
 
+  const qcMerged = useMemo(
+    () => (data ? mergeListQcWithResult(submission, data) : null),
+    [data, submission],
+  );
+
   useEffect(() => {
     if (!data?.parameters?.length) return;
     setSelectedParam((prev) => {
@@ -128,7 +137,13 @@ function DetailView({
     dispositionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const isDispositionCompleted = !!data?.manager_signed_at;
+  const isDispositionCompleted = qcMerged
+    ? isDispositionAlreadySubmitted({
+        disposition: qcMerged.disposition,
+        manager_signed_at: qcMerged.manager_signed_at,
+        approval_status: qcMerged.approval_status,
+      })
+    : false;
 
   return (
     <div className="space-y-6">
@@ -165,107 +180,21 @@ function DetailView({
             )}
           </div>
         </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          {data && (
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-3 sm:justify-start">
+          {data && qcMerged && (
             <>
-              {userRole === "manager" && (data.approval_status || "").toUpperCase().trim() === "WAITING_FOR_QC" && (
-                <div className="inline-flex h-9 items-center gap-2 rounded-lg bg-blue-50 px-3 text-xs font-bold text-blue-600 border border-blue-100 italic">
-                  Awaiting your sign-off
-                </div>
-              )}
-              <ManagerDispositionBadge approvalStatus={data.approval_status} disposition={data.disposition} />
-              <div className="h-6 w-px bg-slate-200 mx-1" aria-hidden />
+              <DetailHeaderWorkflowStatus
+                analystAcknowledgedAt={data.analyst_acknowledged_at}
+                isDispositionCompleted={isDispositionCompleted}
+                disposition={qcMerged.disposition}
+                approvalStatus={qcMerged.approval_status}
+              />
+              <div className="hidden h-6 w-px shrink-0 bg-slate-200 sm:block" aria-hidden />
               <ExportButtons jobId={data.id} compact />
             </>
           )}
         </div>
       </header>
-
-      {/* Status Timeline */}
-      {data && !loading && (
-        <div className="rounded-lg border border-slate-200 bg-white px-6 py-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-[11px] font-semibold text-slate-400 tracking-wide">Document Status</p>
-            <div className="flex items-center gap-2 sm:gap-3 text-[11px]">
-              {/* AI Analyzed */}
-              <div className="flex items-center gap-1.5">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                </div>
-                <span className="font-semibold text-slate-700">AI Analyzed</span>
-              </div>
-
-              {/* Divider */}
-              <div className="h-0.5 w-6 bg-gradient-to-r from-emerald-200 to-slate-200" />
-
-              {/* QC Pending/Review */}
-              <div className="flex items-center gap-1.5">
-                <div className={`flex h-6 w-6 items-center justify-center rounded-full ${
-                  data.analyst_acknowledged_at 
-                    ? "bg-emerald-100" 
-                    : "bg-blue-100 animate-pulse"
-                }`}>
-                  {data.analyst_acknowledged_at ? (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  ) : (
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" className="text-blue-600 animate-spin" style={{ animationDuration: '2s' }}>
-                      <circle cx="12" cy="12" r="2" />
-                    </svg>
-                  )}
-                </div>
-                <span className={`font-semibold ${data.analyst_acknowledged_at ? "text-slate-700" : "text-blue-600"}`}>
-                  {data.analyst_acknowledged_at ? "QC Reviewed" : "QC Pending"}
-                </span>
-              </div>
-
-              {/* Divider */}
-              <div className={`h-0.5 w-6 ${
-                data.analyst_acknowledged_at 
-                  ? "bg-gradient-to-r from-emerald-200 to-slate-200" 
-                  : "bg-slate-200"
-              }`} />
-
-              {/* Disposition Decision */}
-              <div className="flex items-center gap-1.5">
-                <div className={`flex h-6 w-6 items-center justify-center rounded-full ${
-                  data.manager_signed_at 
-                    ? "bg-emerald-100" 
-                    : data.analyst_acknowledged_at 
-                      ? "bg-amber-100 animate-pulse"
-                      : "bg-slate-100"
-                }`}>
-                  {data.manager_signed_at ? (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  ) : data.analyst_acknowledged_at ? (
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" className="text-amber-600 animate-spin" style={{ animationDuration: '2s' }}>
-                      <circle cx="12" cy="12" r="2" />
-                    </svg>
-                  ) : (
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" className="text-slate-400">
-                      <circle cx="12" cy="12" r="2" />
-                    </svg>
-                  )}
-                </div>
-                <span className={`font-semibold ${
-                  data.manager_signed_at 
-                    ? "text-slate-700" 
-                    : data.analyst_acknowledged_at 
-                      ? "text-amber-600"
-                      : "text-slate-400"
-                }`}>
-                  {data.manager_signed_at ? "Decision Completed" : data.analyst_acknowledged_at ? "Decision Pending" : "Decision Awaiting"}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {loading || !data ? (
         <div className="flex min-h-[220px] items-center justify-center rounded-2xl border border-slate-200/70 bg-white shadow-sm">
@@ -292,7 +221,7 @@ function DetailView({
                 userRole !== "manager" && !data.analyst_acknowledged_at
               }
               userRole={userRole}
-              isDispositionCompleted={!!data.manager_signed_at}
+              isDispositionCompleted={isDispositionCompleted}
               onScrollToDisposition={scrollToDisposition}
               onAcknowledge={async () => {
                 if (!window.confirm("Acknowledge that extraction is verified? This moves the item to Tier 2 (Manager Approval).")) return;
@@ -317,7 +246,7 @@ function DetailView({
             </div>
           </div>
 
-          {(userRole === "manager" || data.manager_signed_at) && (
+          {(userRole === "manager" || isDispositionCompleted) && qcMerged && (
             <div ref={dispositionRef}>
               <DispositionPanel
                 submissionId={data.id}
@@ -327,8 +256,11 @@ function DetailView({
                     router.push("/qc-panel");
                   }
                 }}
-                currentDisposition={data.disposition}
-                currentNotes={data.manager_notes}
+                currentDisposition={qcMerged.disposition}
+                currentNotes={qcMerged.manager_notes}
+                managerSignedAt={qcMerged.manager_signed_at}
+                managerName={qcMerged.manager_name}
+                approvalStatus={qcMerged.approval_status}
               />
             </div>
           )}
