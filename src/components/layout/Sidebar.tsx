@@ -133,14 +133,14 @@ export function Sidebar({ activePage, onLogout, user }: SidebarProps) {
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex shrink-0 flex-col items-center gap-3 border-b border-slate-800 px-4 py-6">
+        <div className="flex shrink-0 flex-col items-stretch gap-3 border-b border-slate-800 px-4 py-6">
           {brand.logoSrc && brand.logoPresentation === "wordmark" ? (
-            <div className="flex w-full items-center justify-center px-1">
+            <div className="flex w-full items-center justify-start px-1">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={brand.logoSrc}
                 alt={brand.logoAlt}
-                className="h-10 w-auto max-w-full object-contain object-center"
+                className="h-10 w-auto max-w-full object-contain object-left"
               />
             </div>
           ) : (
@@ -163,8 +163,8 @@ export function Sidebar({ activePage, onLogout, user }: SidebarProps) {
               </div>
             </div>
           )}
-          <div className="w-full text-center border-t border-slate-800/50">
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500 whitespace-nowrap">
+          <div className="w-full border-t border-slate-800/50 text-left">
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500 whitespace-nowrap ml-3">
               {brand.tagline}
             </p>
           </div>
