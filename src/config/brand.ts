@@ -90,6 +90,8 @@ export const statusFilterChipClasses: Record<
 
 export type BrandConfig = {
   productName: string;
+  /** Second line next to logo in `icon` presentation (e.g. “Pharmaceuticals”). Omit for wordmark-only. */
+  productSubtitle?: string | null;
   tagline: string;
   /** Shown in the nav when logoSrc is not set. */
   logoMark: string;
@@ -99,12 +101,19 @@ export type BrandConfig = {
    */
   logoSrc: string | null;
   logoAlt: string;
+  /**
+   * `wordmark` = image is the full mark (e.g. WOLVIC); no extra title text beside it.
+   * `icon` = small mark + productName + optional productSubtitle.
+   */
+  logoPresentation: "icon" | "wordmark";
 };
 
 export const brand: BrandConfig = {
-  productName: "Axivera Pharmaceuticals",
-  tagline: "Quality · Science · Trust",
-  logoMark: "AXV",
-  logoSrc: "/logo.svg",
-  logoAlt: "Axivera Pharmaceuticals",
+  productName: "WOLVIO",
+  productSubtitle: null,
+  tagline: "CoA AI Assistant",
+  logoMark: "W",
+  logoSrc: "/wolvic-logo.png",
+  logoAlt: "WOLVIO",
+  logoPresentation: "wordmark",
 };

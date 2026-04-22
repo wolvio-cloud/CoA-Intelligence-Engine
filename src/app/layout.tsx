@@ -14,7 +14,8 @@ export const metadata: Metadata = {
   title: brand.productName,
   description: brand.tagline,
   icons: {
-    icon: "/favicon.svg",
+    icon: [{ url: "/wolvic-logo.png", type: "image/png", sizes: "any" }],
+    apple: [{ url: "/wolvic-logo.png", type: "image/png", sizes: "180x180" }],
   },
 };
 

@@ -6,17 +6,14 @@ import { SubmissionsTable } from "@/components/submissions/SubmissionsTable";
 import { ResultTable } from "@/components/results/ResultTable";
 import { ParameterDetail } from "@/components/results/ParameterDetail";
 import { DispositionPanel } from "@/components/results/DispositionPanel";
+import { DetailHeaderWorkflowStatus } from "@/components/results/DetailHeaderWorkflowStatus";
 import { ExportButtons } from "@/components/export/ExportButtons";
 import { useCoaResult } from "@/hooks/useCoaResult";
 import { useAuth } from "@/context/AuthContext";
 import { listSubmissions, deleteSubmission, downloadExport, downloadBulkExport, acknowledgeSubmission } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import type { CoaParameter, SubmissionSummary } from "@/lib/types";
-import {
-  dispositionDecisionLabel,
-  isDispositionAlreadySubmitted,
-  mergeListQcWithResult,
-} from "@/lib/qcDisposition";
+import { isDispositionAlreadySubmitted, mergeListQcWithResult } from "@/lib/qcDisposition";
 
 type View = "list" | "detail";
 
@@ -59,53 +56,6 @@ function EmptyState() {
   );
 }
 
-/** Single-line workflow status, shown left of export in the detail header. */
-function DetailHeaderWorkflowStatus({
-  analystAcknowledgedAt,
-  isDispositionCompleted,
-  disposition,
-  approvalStatus,
-}: {
-  analystAcknowledgedAt: string | null | undefined;
-  isDispositionCompleted: boolean;
-  disposition: string | null;
-  approvalStatus: string | null;
-}) {
-  if (isDispositionCompleted) {
-    const label = dispositionDecisionLabel(disposition, approvalStatus);
-    const display =
-      label !== "—"
-        ? label
-        : (approvalStatus || "Submitted").replace(/_/g, " ");
-    const lower = display.toLowerCase();
-    const tone = lower.includes("reject")
-      ? "text-rose-700"
-      : lower.includes("hold")
-        ? "text-amber-700"
-        : "text-emerald-700";
-    return (
-      <p className="max-w-[min(100%,280px)] text-right text-[11px] leading-snug text-slate-600 sm:max-w-[320px] sm:text-left">
-        <span className="font-semibold text-slate-500">Disposition Decision:</span>{" "}
-        <span className={`font-bold ${tone}`}>{display}</span>
-      </p>
-    );
-  }
-  if (analystAcknowledgedAt) {
-    return (
-      <p className="max-w-[min(100%,280px)] text-right text-[11px] leading-snug text-slate-600 sm:max-w-[320px] sm:text-left">
-        <span className="font-semibold text-slate-500">QC:</span>{" "}
-        <span className="font-bold text-amber-700">Pending</span>
-      </p>
-    );
-  }
-  return (
-    <p className="max-w-[min(100%,280px)] text-right text-[11px] leading-snug text-slate-600 sm:max-w-[320px] sm:text-left">
-      <span className="font-semibold text-slate-500">AI Analysis:</span>{" "}
-      <span className="font-bold text-emerald-700">Complete</span>
-    </p>
-  );
-}
-
 function DetailView({
   submission,
   onBack,
@@ -117,6 +67,7 @@ function DetailView({
 }) {
   const router = useRouter();
   const [selectedParam, setSelectedParam] = useState<CoaParameter | null>(null);
+  const [analystAckOverride, setAnalystAckOverride] = useState<string | null>(null);
   const { data, loading, refetch } = useCoaResult(submission.id, true);
   const dispositionRef = useRef<HTMLDivElement>(null);
 
@@ -133,6 +84,10 @@ function DetailView({
     });
   }, [data]);
 
+  useEffect(() => {
+    if (qcMerged?.analyst_acknowledged_at) setAnalystAckOverride(null);
+  }, [qcMerged?.analyst_acknowledged_at]);
+
   const scrollToDisposition = () => {
     dispositionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -144,6 +99,28 @@ function DetailView({
         approval_status: qcMerged.approval_status,
       })
     : false;
+
+  const detailWorkflowDisplay = useMemo(() => {
+    if (data && qcMerged) {
+      return {
+        analystAcknowledgedAt: qcMerged.analyst_acknowledged_at ?? analystAckOverride ?? null,
+        isDispositionCompleted,
+        disposition: qcMerged.disposition,
+        approvalStatus: qcMerged.approval_status,
+      };
+    }
+    const fromList = isDispositionAlreadySubmitted({
+      disposition: submission.disposition,
+      manager_signed_at: submission.manager_signed_at,
+      approval_status: submission.approval_status,
+    });
+    return {
+      analystAcknowledgedAt: submission.analyst_acknowledged_at ?? analystAckOverride ?? null,
+      isDispositionCompleted: fromList,
+      disposition: submission.disposition ?? null,
+      approvalStatus: submission.approval_status ?? null,
+    };
+  }, [data, qcMerged, submission, isDispositionCompleted, analystAckOverride]);
 
   return (
     <div className="space-y-6">
@@ -181,14 +158,14 @@ function DetailView({
           </div>
         </div>
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-3 sm:justify-start">
-          {data && qcMerged && (
+          <DetailHeaderWorkflowStatus
+            analystAcknowledgedAt={detailWorkflowDisplay.analystAcknowledgedAt}
+            isDispositionCompleted={detailWorkflowDisplay.isDispositionCompleted}
+            disposition={detailWorkflowDisplay.disposition}
+            approvalStatus={detailWorkflowDisplay.approvalStatus}
+          />
+          {data && (
             <>
-              <DetailHeaderWorkflowStatus
-                analystAcknowledgedAt={data.analyst_acknowledged_at}
-                isDispositionCompleted={isDispositionCompleted}
-                disposition={qcMerged.disposition}
-                approvalStatus={qcMerged.approval_status}
-              />
               <div className="hidden h-6 w-px shrink-0 bg-slate-200 sm:block" aria-hidden />
               <ExportButtons jobId={data.id} compact />
             </>
@@ -216,9 +193,9 @@ function DetailView({
               matchScore={data.product_match.match_score}
               statusSummary={data.status_summary}
               header={data.header}
-              isAcknowledged={!!data.analyst_acknowledged_at}
+              isAcknowledged={Boolean(detailWorkflowDisplay.analystAcknowledgedAt)}
               showAcknowledgeButton={
-                userRole !== "manager" && !data.analyst_acknowledged_at
+                userRole !== "manager" && !detailWorkflowDisplay.analystAcknowledgedAt
               }
               userRole={userRole}
               isDispositionCompleted={isDispositionCompleted}
@@ -227,6 +204,7 @@ function DetailView({
                 if (!window.confirm("Acknowledge that extraction is verified? This moves the item to Tier 2 (Manager Approval).")) return;
                 try {
                   await acknowledgeSubmission(data.id);
+                  setAnalystAckOverride(new Date().toISOString());
                   await refetch();
                 } catch (e) {
                   alert("Failed to acknowledge: " + (e instanceof Error ? e.message : String(e)));
