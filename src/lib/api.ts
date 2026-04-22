@@ -324,8 +324,11 @@ function parseListOverallStatus(raw: unknown, fallback: ValidationStatusKey): Va
   return fallback;
 }
 
-export async function listSubmissions(limit = 100): Promise<SubmissionSummary[]> {
-  const q = new URLSearchParams({ limit: String(Math.min(500, Math.max(1, limit))) });
+export async function listSubmissions(limit = 100, offset = 0): Promise<SubmissionSummary[]> {
+  const q = new URLSearchParams({ 
+    limit: String(Math.min(500, Math.max(1, limit))),
+    offset: String(Math.max(0, offset))
+  });
   const data = await fetchJson<any[]>(`${API_BASE}/submissions?${q.toString()}`);
   return data.map((item) => {
     const stage = submissionListStage(item.status);

@@ -49,6 +49,9 @@ export function OverallStatus({
   acknowledging,
   isAcknowledged,
   showAcknowledgeButton,
+  userRole,
+  onScrollToDisposition,
+  isDispositionCompleted,
 }: {
   status: string;
   productName: string;
@@ -61,11 +64,14 @@ export function OverallStatus({
   acknowledging?: boolean;
   isAcknowledged?: boolean;
   showAcknowledgeButton?: boolean;
+  userRole?: string;
+  onScrollToDisposition?: () => void;
+  isDispositionCompleted?: boolean;
 }) {
   const key = isStatusKey(status) ? status : "REVIEW";
   const { title: statusTitle, desc: statusDesc } = STATUS_DESCRIPTIONS[key];
   const fileLabel = looksLikeUuidSegment(filename) ? "Uploaded document" : filename;
-console.log(showAcknowledgeButton,isAcknowledged,'showAcknowledgeButton')
+
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
       <div className="grid lg:grid-cols-12">
@@ -134,6 +140,19 @@ console.log(showAcknowledgeButton,isAcknowledged,'showAcknowledgeButton')
                 </p>
               </div>
             </div>
+
+            {userRole === "manager" && !isDispositionCompleted && (
+              <button
+                type="button"
+                onClick={onScrollToDisposition}
+                disabled={isDispositionCompleted}
+                title={isDispositionCompleted ? "This submission has already been reviewed" : "Scroll to Disposition Decision"}
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-slate-700 py-3 text-[11px] font-bold text-white transition hover:bg-slate-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-400 disabled:text-slate-200"
+              >
+                
+                Disposition Decision
+              </button>
+            )}
 
             {showAcknowledgeButton && !isAcknowledged && (
               <button

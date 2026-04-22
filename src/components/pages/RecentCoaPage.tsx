@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { OverallStatus } from "@/components/results/OverallStatus";
 import { SubmissionsTable } from "@/components/submissions/SubmissionsTable";
 import { ResultTable } from "@/components/results/ResultTable";
@@ -114,6 +114,7 @@ function DetailView({
   const router = useRouter();
   const [selectedParam, setSelectedParam] = useState<CoaParameter | null>(null);
   const { data, loading, refetch } = useCoaResult(submission.id, true);
+  const dispositionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!data?.parameters?.length) return;
@@ -122,6 +123,12 @@ function DetailView({
       return data.parameters[0];
     });
   }, [data]);
+
+  const scrollToDisposition = () => {
+    dispositionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const isDispositionCompleted = !!data?.manager_signed_at;
 
   return (
     <div className="space-y-6">
@@ -174,6 +181,92 @@ function DetailView({
         </div>
       </header>
 
+      {/* Status Timeline */}
+      {data && !loading && (
+        <div className="rounded-lg border border-slate-200 bg-white px-6 py-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[11px] font-semibold text-slate-400 tracking-wide">Document Status</p>
+            <div className="flex items-center gap-2 sm:gap-3 text-[11px]">
+              {/* AI Analyzed */}
+              <div className="flex items-center gap-1.5">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+                <span className="font-semibold text-slate-700">AI Analyzed</span>
+              </div>
+
+              {/* Divider */}
+              <div className="h-0.5 w-6 bg-gradient-to-r from-emerald-200 to-slate-200" />
+
+              {/* QC Pending/Review */}
+              <div className="flex items-center gap-1.5">
+                <div className={`flex h-6 w-6 items-center justify-center rounded-full ${
+                  data.analyst_acknowledged_at 
+                    ? "bg-emerald-100" 
+                    : "bg-blue-100 animate-pulse"
+                }`}>
+                  {data.analyst_acknowledged_at ? (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  ) : (
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" className="text-blue-600 animate-spin" style={{ animationDuration: '2s' }}>
+                      <circle cx="12" cy="12" r="2" />
+                    </svg>
+                  )}
+                </div>
+                <span className={`font-semibold ${data.analyst_acknowledged_at ? "text-slate-700" : "text-blue-600"}`}>
+                  {data.analyst_acknowledged_at ? "QC Reviewed" : "QC Pending"}
+                </span>
+              </div>
+
+              {/* Divider */}
+              <div className={`h-0.5 w-6 ${
+                data.analyst_acknowledged_at 
+                  ? "bg-gradient-to-r from-emerald-200 to-slate-200" 
+                  : "bg-slate-200"
+              }`} />
+
+              {/* Disposition Decision */}
+              <div className="flex items-center gap-1.5">
+                <div className={`flex h-6 w-6 items-center justify-center rounded-full ${
+                  data.manager_signed_at 
+                    ? "bg-emerald-100" 
+                    : data.analyst_acknowledged_at 
+                      ? "bg-amber-100 animate-pulse"
+                      : "bg-slate-100"
+                }`}>
+                  {data.manager_signed_at ? (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  ) : data.analyst_acknowledged_at ? (
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" className="text-amber-600 animate-spin" style={{ animationDuration: '2s' }}>
+                      <circle cx="12" cy="12" r="2" />
+                    </svg>
+                  ) : (
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" className="text-slate-400">
+                      <circle cx="12" cy="12" r="2" />
+                    </svg>
+                  )}
+                </div>
+                <span className={`font-semibold ${
+                  data.manager_signed_at 
+                    ? "text-slate-700" 
+                    : data.analyst_acknowledged_at 
+                      ? "text-amber-600"
+                      : "text-slate-400"
+                }`}>
+                  {data.manager_signed_at ? "Decision Completed" : data.analyst_acknowledged_at ? "Decision Pending" : "Decision Awaiting"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {loading || !data ? (
         <div className="flex min-h-[220px] items-center justify-center rounded-2xl border border-slate-200/70 bg-white shadow-sm">
           <div className="flex flex-col items-center gap-3 text-slate-400">
@@ -198,6 +291,9 @@ function DetailView({
               showAcknowledgeButton={
                 userRole !== "manager" && !data.analyst_acknowledged_at
               }
+              userRole={userRole}
+              isDispositionCompleted={!!data.manager_signed_at}
+              onScrollToDisposition={scrollToDisposition}
               onAcknowledge={async () => {
                 if (!window.confirm("Acknowledge that extraction is verified? This moves the item to Tier 2 (Manager Approval).")) return;
                 try {
@@ -222,17 +318,19 @@ function DetailView({
           </div>
 
           {(userRole === "manager" || data.manager_signed_at) && (
-            <DispositionPanel
-              submissionId={data.id}
-              onSuccess={async () => {
-                await refetch();
-                if (userRole === "manager") {
-                  router.push("/qc-panel");
-                }
-              }}
-              currentDisposition={data.disposition}
-              currentNotes={data.manager_notes}
-            />
+            <div ref={dispositionRef}>
+              <DispositionPanel
+                submissionId={data.id}
+                onSuccess={async () => {
+                  await refetch();
+                  if (userRole === "manager") {
+                    router.push("/qc-panel");
+                  }
+                }}
+                currentDisposition={data.disposition}
+                currentNotes={data.manager_notes}
+              />
+            </div>
           )}
         </>
       )}

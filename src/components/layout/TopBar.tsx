@@ -17,7 +17,7 @@ const pageMeta: Record<Page, { title: string; description: string }> = {
   },
   "recent-coa": {
     title: "Recent CoA",
-    description: "Browse and review past submissions",
+    description: "Browse and review submissions",
   },
   customize: {
     title: "Baseline Setup",
